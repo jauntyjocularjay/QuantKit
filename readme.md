@@ -33,3 +33,9 @@ This function sorts the input data and returns a slice containing the "middle 50
 iqr_slice([1, 2, 3, 4, 5, 6, 7, 8, 9])  # returns [3, 4, 5, 6, 7]
 ```
 
+** Test Runner
+
+```bash
+$ cd path/to/module
+$ poetry run pytest -v filename.py
+```
