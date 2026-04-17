@@ -1,8 +1,8 @@
 import math as Math
 import statistics as Statistics
-import console
 from collections.abc import Sequence
 from typing import Literal
+from pprint import pprint
 
 # To import use from the same folder:
 # import stats 
@@ -10,7 +10,6 @@ from typing import Literal
 # To import use from the parent folder:
 # from PyTils import stats 
 
-console.clear()
 
 def median_index(data_list: Sequence):
 	""" Returns the index or indices of the median value(s) in a sorted version of the input list.
@@ -132,6 +131,8 @@ def box_plotify(data_list: Sequence, quantile_method: Literal['exclusive', 'incl
 		'max': data_list[-1]
 	}
 
+
+
 # Errors
 class InvalidSequenceError(TypeError):
 	"""Exception raised when an argument is not a valid sequence.
@@ -188,7 +189,7 @@ def basic_sequence(input_type, data_list):
 	"""Return a sequence of the same type as input_type, populated with data_list's elements.
 
 	Converts the provided data_list into a set, tuple, or list, matching the type of input_type.
-	If input_type is set, returns a set; if tuple, returns a tuple; otherwise, returns a list.
+	If input_type is set, returns a set, if tuple, returns a tuple, otherwise, returns a list.
 
 	Parameters:
 		input_type: The type to match (set, tuple, or list).
@@ -211,8 +212,69 @@ def basic_sequence(input_type, data_list):
 
 
 
+# Classes
+class BoxPlot:
+	"""Represents a box plot summary for a numeric sequence (min, Q1, median, Q3, max).
 
+	This class computes and stores the five-number summary required for a box plot:
+	minimum, first quartile (Q1), median (Q2), third quartile (Q3), and maximum. Quartiles
+	are calculated using the specified method ('exclusive' or 'inclusive'). If a tuple or
+	set is passed as the sequence it will be automatically converted to an ordered list.
+    In the case of sets, the original order will be lost. 
 
+	Parameters:
+		data_list (Sequence): A sequence of numeric values (length >= 4).
+		quantile_method (Literal['exclusive', 'inclusive']): Method for quartile calculation.
+			Defaults to 'exclusive'.
 
+	Attributes:
+		min (float): Minimum value in the data.
+		q1 (float): First quartile (25th percentile).
+		median (float): Median value (50th percentile).
+		q3 (float): Third quartile (75th percentile).
+		max (float): Maximum value in the data.
+		data_list (list): Sorted list of the input data.
 
+	Example:
+		bp = BoxPlot([1, 2, 3, 4, 5, 6])
+		print(bp.as_dict())
+		# {'min': 1, 'q1': 2.25, 'median': 3.5, 'q2': 3.5, 'q3': 4.75, 'max': 6}
+
+	Notes:
+		The __str__ method provides a compact, human-readable summary of the box plot:
+			boxplot:    min * {min} ---- q1 [ {q1}     median | {median}     q3 ] {q3} ---- max * {max}]
+		This is useful for quick inspection of the five-number summary in logs or printouts.
+		For a traditional logging instead, use BoxPlot.as_dict() when you print the result.
+	"""
+	def __init__(self, data_list: Sequence, quantile_method: Literal['exclusive', 'inclusive'] = 'exclusive'):
+
+		if data_list is None or not isinstance(data_list, Sequence):
+			raise InvalidSequenceError
+		if not sequence_are_numbers(data_list):
+			raise NotNumericSequenceError
+		if len(data_list) < 4:
+			raise ValueError('argument must have at least length 4')
+
+		data_list = sorted(data_list)
+		quartiles = Statistics.quantiles(data_list, n=4, method = quantile_method)
+
+		self.min = data_list[0]
+		self.q1 = quartiles[0]
+		self.median = Statistics.median(data_list) # aka 'q2'
+		self.q3 = quartiles[2]
+		self.max = data_list[-1]
+		self.data_list = data_list
+
+	def as_dict(self):
+		return {
+            'min': self.min,
+            'q1': self.q1,
+            'median': self.median,
+            'q2': self.median,
+            'q3': self.q3,
+            'max': self.max
+		}
+
+	def __str__(self):
+		return f'boxplot:    min * {self.min} ---- q1 [ {self.q1}     median | {self.median}     q3 ] {self.q3} ---- max * {self.max}]'
 
