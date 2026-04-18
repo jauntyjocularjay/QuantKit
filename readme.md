@@ -37,5 +37,11 @@ iqr_slice([1, 2, 3, 4, 5, 6, 7, 8, 9])  # returns [3, 4, 5, 6, 7]
 
 ```bash
 $ cd path/to/module
-$ poetry run pytest -v filename.py
+
+# Run a specific test file
+$ poetry run pytest -v test_stats.py
+
+# Run tests with coverage  report
+$ poetry run pytest --cov=PyTils --cov-report=term -v test_stats.py
 ```
+
