@@ -1,6 +1,9 @@
 import math as Math
 import statistics as Statistics
-import console
+try:
+    from . import console  # For package usage
+except ImportError:
+    import console         # For direct script usage
 from collections.abc import Sequence
 from typing import Literal
 from pprint import pprint
@@ -101,7 +104,7 @@ def interquartile_slice(data_list: Sequence):
     initial_index = iqr_length // 2
     result = data_list[initial_index:initial_index+iqr_length]
 
-    return basic_sequence(input_type, result)
+    return return_basic_sequence(input_type, result)
 
 def iqs(data_list: Sequence):
     return interquartile_slice(data_list)
@@ -200,7 +203,7 @@ def sequence_are_numbers(data_list: Sequence):
 
     return True
 
-def basic_sequence(input_type, data_list):
+def return_basic_sequence(input_type, data_list):
     """Return a sequence of the same type as input_type, populated with data_list's elements.
 
     Converts the provided data_list into a set, tuple, or list, matching the type of input_type.
@@ -356,5 +359,5 @@ class BoxPlot:
     def __str__(self):
         return f'boxplot:    min * {self.min} ---- q1 [ {self.q1}     median | {self.median}     q3 ] {self.q3} ---- max * {self.max}]'
 
-bp = BoxPlot([-1024, -512-64,-512, -512-128,136, 140, 178, 190, 205, 215, 217, 218, 232, 234, 240, 255, 270, 275, 290, 301, 303, 315, 317, 318, 326, 333, 343, 349, 360, 369, 377, 388, 391, 392, 398, 400, 402, 405, 408, 422, 429, 450, 475, 512, 1024])
-pprint(bp.as_dict())
+# bp = BoxPlot([-1024, -512-64,-512, -512-128,136, 140, 178, 190, 205, 215, 217, 218, 232, 234, 240, 255, 270, 275, 290, 301, 303, 315, 317, 318, 326, 333, 343, 349, 360, 369, 377, 388, 391, 392, 398, 400, 402, 405, 408, 422, 429, 450, 475, 512, 1024])
+# pprint(bp.as_dict())

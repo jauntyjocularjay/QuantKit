@@ -1,12 +1,10 @@
+
 import sys
-import os 
+import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
-import PyTils.stats as stats # type: ignore
-import PyTils.console as console # type: ignore
+import PyTils.stats as stats
 import pytest
 from typing import Literal
-
-console.clear()
 
 # Shared constants for DRYness
 EXPECTED_BOXPLOT_KEYS = [
