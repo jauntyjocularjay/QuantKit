@@ -1,12 +1,14 @@
-import math as Math
-import statistics as Statistics
 try:
     from . import console  # For package usage
 except ImportError:
     import console         # For direct script usage
+import statistics as Statistics
+from dataclasses import dataclass, field
 from collections.abc import Sequence
-from typing import Literal
+from typing import Literal, Union
 from pprint import pprint
+from .validation import sequence_are_numbers, InvalidSequenceError, NotNumericSequenceError
+from .returns import return_original_sequence_type
 
 # To import use from the same folder:
 # import stats 
@@ -104,134 +106,20 @@ def interquartile_slice(data_list: Sequence):
     initial_index = iqr_length // 2
     result = data_list[initial_index:initial_index+iqr_length]
 
-    return return_basic_sequence(input_type, result)
+    return return_original_sequence_type(input_type, result)
 
 def iqs(data_list: Sequence):
     return interquartile_slice(data_list)
 
-def box_plotify(data_list: Sequence, quantile_method: Literal['exclusive', 'inclusive'] = 'exclusive'):
-    """Calculate box plot parameters (min, Q1, median, Q3, max) for a numeric sequence.
-
-    This function computes the five-number summary required for a box plot: minimum, first quartile (Q1),
-    median (Q2), third quartile (Q3), and maximum. Quartiles are calculated using the specified method.
-
-    Parameters:
-        data_list (Sequence): A sequence of numeric values (length >= 4).
-        quantile_method (Literal['exclusive', 'inclusive']): Method for quartile calculation. Defaults to 'exclusive'.
-
-    Returns:
-        dict: A dictionary with keys min, q1, 'median', q3, and max.
-
-    Raises:
-        InvalidSequenceError: If data_list is not a valid sequence.
-        NotNumericSequenceError: If data_list contains non-numeric values.
-        ValueError: If data_list has fewer than 4 elements.
-
-    Example:
-        box_plot_params([1, 2, 3, 4, 5, 6])
-        # returns {min: 1, q1: 2.25, 'median': 3.5, q3: 4.75, max: 6}
-    """
-    if data_list is None or not isinstance(data_list, Sequence):
-        raise InvalidSequenceError
-    if not sequence_are_numbers(data_list):
-        raise NotNumericSequenceError
-    if len(data_list) < 4:
-        raise ValueError('argument must have at least length 4')
-
-    data_list = sorted(data_list)
-    quartiles = Statistics.quantiles(data_list, n=4, method = quantile_method)
-
-    return {
-        SEQUENCE_MINIMUM: data_list[0],
-        Q1: quartiles[0],
-        'median': Statistics.median(data_list), # aka q2
-        Q3: quartiles[2],
-        SEQUENCE_MAXIMUM: data_list[-1]
-    }
-
-
-
-# Errors
-class InvalidSequenceError(TypeError):
-    """Exception raised when an argument is not a valid sequence.
-
-    Raised by statistical functions when the input is not a sequence type (e.g., list, tuple, set).
-
-    Example:
-        if not isinstance(data_list, Sequence):
-            raise InvalidSequenceError
-    """
-    def __init__(self, message=f"expected a {Sequence}"):
-        super().__init__(message)
-
-class NotNumericSequenceError(TypeError):
-    """Exception raised when a sequence contains non-numeric elements.
-
-    Raised by statistical functions when the input sequence contains elements that are not real numbers.
-
-    Example:
-        if not sequence_are_numbers(data_list):
-            raise NotNumericSequenceError
-    """
-    def __init__(self, message=f"expected a {Sequence} real numbers"):
-        super().__init__(message)
-
-# Helpers
-def sequence_are_numbers(data_list: Sequence):
-    """ Checks that all elements in data_list are numeric (int or float), or that data_list is None.
-
-    This function is intended to validate input for statistical analysis functions. If any element
-    in the list is not an integer or float.
-
-    Parameters:
-        data_list (list or None): The input list to check.
-
-    Raises:
-        TypeError: If any element in data_list is not an int or float.
-
-    Example:
-        sequence_are_numbers([1, 2.5, 3])    # returns True
-        sequence_are_numbers(['a', 2, 3])    # returns false
-        sequence_are_numbers(None)            # raises TypeError
-    """
-    if not isinstance(data_list, Sequence):
-        raise InvalidSequenceError
-
-    for x in data_list:
-        if not isinstance(x, (int, float)) or Math.isnan(x) or Math.isinf(x):
-            return False
-
-    return True
-
-def return_basic_sequence(input_type, data_list):
-    """Return a sequence of the same type as input_type, populated with data_list's elements.
-
-    Converts the provided data_list into a set, tuple, or list, matching the type of input_type.
-    If input_type is set, returns a set, if tuple, returns a tuple, otherwise, returns a list.
-
-    Parameters:
-        input_type: The type to match (set, tuple, or list).
-        data_list: The data to convert.
-
-    Returns:
-        A new sequence (set, tuple, or list) containing the elements of data_list.
-
-    Example:
-        basic_sequence(list, [1, 2, 3])   # returns [1, 2, 3]
-        basic_sequence(tuple, [1, 2, 3])  # returns (1, 2, 3)
-        basic_sequence(set, [1, 2, 3])    # returns {1, 2, 3}
-    """
-    if input_type is set:
-        return set(data_list)
-    elif input_type is tuple:
-        return tuple(data_list)
-    else:
-        return list(data_list)
-
-
 
 # Classes
+@dataclass(frozen=True)
 class BoxPlot:
+    q1: Union[float, int]
+    median: Union[float, int]
+    q3: Union[float, int]
+    data_list: Sequence
+    
     """Represents a box plot summary for a numeric sequence (min, Q1, median, Q3, max).
 
     This class computes and stores the five-number summary required for a box plot:
@@ -273,7 +161,6 @@ class BoxPlot:
         For a traditional logging instead, use BoxPlot.as_dict() when you print the result.
     """
     def __init__(self, data_list: Sequence, quantile_method: Literal['exclusive', 'inclusive'] = 'exclusive'):
-
         if data_list is None or not isinstance(data_list, Sequence):
             raise InvalidSequenceError
         if not sequence_are_numbers(data_list):
@@ -284,10 +171,10 @@ class BoxPlot:
         data_list = sorted(data_list)
         quartiles = Statistics.quantiles(data_list, n=4, method = quantile_method)
 
-        self.q1 = quartiles[0]
-        self.median = Statistics.median(data_list) # aka q2
-        self.q3 = quartiles[2]
-        self.data_list = data_list
+        object.__setattr__(self, Q1, quartiles[0])
+        object.__setattr__(self, SEQUENCE_MEDIAN, Statistics.median(data_list)) # aka q2
+        object.__setattr__(self, Q3, quartiles[2])
+        object.__setattr__(self, DATA_LIST, data_list)
 
     @property
     def min(self):
@@ -359,5 +246,5 @@ class BoxPlot:
     def __str__(self):
         return f'boxplot:    min * {self.min} ---- q1 [ {self.q1}     median | {self.median}     q3 ] {self.q3} ---- max * {self.max}]'
 
-# bp = BoxPlot([-1024, -512-64,-512, -512-128,136, 140, 178, 190, 205, 215, 217, 218, 232, 234, 240, 255, 270, 275, 290, 301, 303, 315, 317, 318, 326, 333, 343, 349, 360, 369, 377, 388, 391, 392, 398, 400, 402, 405, 408, 422, 429, 450, 475, 512, 1024])
-# pprint(bp.as_dict())
+bp = BoxPlot([-1024, -512-64,-512, -512-128,136, 140, 178, 190, 205, 215, 217, 218, 232, 234, 240, 255, 270, 275, 290, 301, 303, 315, 317, 318, 326, 333, 343, 349, 360, 369, 377, 388, 391, 392, 398, 400, 402, 405, 408, 422, 429, 450, 475, 512, 1024])
+pprint(bp.as_dict())
