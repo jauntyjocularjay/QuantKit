@@ -1,14 +1,16 @@
-try:
-    from . import console  # For package usage
+# For package usage
+try: 
+    from . import console 
+# For direct script usage
 except ImportError:
-    import console         # For direct script usage
+    import console
 import statistics as Statistics
 from dataclasses import dataclass, field
 from collections.abc import Sequence
 from typing import Literal, Union
 from pprint import pprint
-from .validation import sequence_are_numbers, InvalidSequenceError, NotNumericSequenceError
-from .returns import return_original_sequence_type
+from validation import sequence_are_numbers, InvalidSequenceError, NotNumericSequenceError
+from returns import return_original_sequence_type
 
 # To import use from the same folder:
 # import stats 
