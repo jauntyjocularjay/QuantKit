@@ -1,0 +1,4 @@
+#!/bin/bash
+
+cd .. &&  poetry run pytest --cov=PyTils --cov-report=term -v && cd PyTils
+
