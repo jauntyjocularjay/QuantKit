@@ -1,16 +1,16 @@
 # For package usage
 try: 
-    import console 
+    from . import console 
 # For direct script usage
 except ImportError:
-    import console as console
+    from . import console as console
 import statistics as Statistics
 from dataclasses import dataclass, field
 from collections.abc import Sequence
 from typing import Literal, Union
 from pprint import pprint
-from validation import sequence_are_numbers, InvalidSequenceError, NotNumericSequenceError
-from returns import return_original_sequence_type
+from .validation import sequence_are_numbers, InvalidSequenceError, NotNumericSequenceError
+from .returns import original_sequence_type
 
 # To import use from the same folder:
 # import stats 
@@ -108,7 +108,7 @@ def interquartile_slice(data_list: Sequence):
     initial_index = iqr_length // 2
     result = data_list[initial_index:initial_index+iqr_length]
 
-    return return_original_sequence_type(input_type, result)
+    return original_sequence_type(input_type, result)
 
 def iqs(data_list: Sequence):
     return interquartile_slice(data_list)

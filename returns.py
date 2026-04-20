@@ -5,7 +5,7 @@ from .validation import sequence_are_numbers, InvalidSequenceError, NotNumericSe
 
 
 
-def return_original_sequence_type(input_type: type, data_list: Sequence):
+def original_sequence_type(input_type: type, data_list: Sequence):
     """ Return a sequence of the same type as input_type, populated with data_list's elements.
 
     Converts the provided data_list into a set, tuple, or list, matching the type of input_type.

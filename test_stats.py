@@ -1,13 +1,14 @@
 import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
-import pytils.stats as stats
-import pytils.console as console
+from pytils.validation import sequence_are_numbers, InvalidSequenceError, NotNumericSequenceError
+from pytils.stats import median_index, interquartile_slice, iqs, BoxPlot
+from pytils.console import clear
 import pytest
 from typing import Literal
 
 
-console.clear()
+clear()
 
 # --- median_index tests ---
 import math
@@ -29,8 +30,8 @@ import math
 )
 def test_median_index(input_list, expected, desc):
     """Test median_index for various cases: odd/even, sorted/unsorted, duplicates, empty, None."""
-    result = stats.median_index(input_list)
-    assert result == expected, f"median_index should return {expected} for {desc}, got {result}"
+    result = median_index(input_list)
+    assert result == expected, f"median_index should return {expected} for {desc}, got {result}\n"
 
 
 # --- iqr_slice tests ---
@@ -43,67 +44,67 @@ def test_median_index(input_list, expected, desc):
 )
 def test_iqr_slice_typical(input_list, expected, desc):
     """Test interquartile_slice returns correct slice for typical odd/even-length lists."""
-    result = stats.interquartile_slice(input_list)
+    result = interquartile_slice(input_list)
     assert result == expected, f"iqr_slice should return {expected} for {desc}, got {result}"
 
 @pytest.mark.parametrize("input_list,desc", [([], "empty list"), (None, "None input")])
 def test_iqr_slice_empty_none(input_list, desc):
     """Test interquartile_slice returns None for empty or None input."""
-    result = stats.interquartile_slice(input_list)
+    result = interquartile_slice(input_list)
     assert result is None, f"iqr_slice should return None for {desc}, got {result}"
 
 def test_iqr_slice_non_numeric():
     """Test interquartile_slice raises TypeError for non-numeric input."""
     with pytest.raises(TypeError):
-        stats.interquartile_slice([1, 'a', 3])
+        interquartile_slice([1, 'a', 3])
 
 
 # --- iqs tests ---
 def test_iqs_equivalence():
     """Test that iqs returns the same result as interquartile_slice for the same input."""
     data = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-    result = stats.iqs(data)
-    expected = stats.interquartile_slice(data)
+    result = iqs(data)
+    expected = interquartile_slice(data)
     assert result == expected, "iqs should return the same result as interquartile_slice for the same input"
 
 
 # --- Error class tests ---
 def test_invalid_sequence_error():
     """Test InvalidSequenceError can be raised and has correct message."""
-    with pytest.raises(stats.InvalidSequenceError, match="expected"):
-        raise stats.InvalidSequenceError()
+    with pytest.raises(InvalidSequenceError, match="expected"):
+        raise InvalidSequenceError()
 
 def test_not_numeric_sequence_error():
     """Test NotNumericSequenceError can be raised and has correct message."""
-    with pytest.raises(stats.NotNumericSequenceError, match="real numbers"):
-        raise stats.NotNumericSequenceError()
+    with pytest.raises(NotNumericSequenceError, match="real numbers"):
+        raise NotNumericSequenceError()
 
 
 # --- sequence_are_numbers tests ---
 def test_sequence_are_numbers_all_numeric():
     """Test sequence_are_numbers returns True for all-numeric sequence."""
-    assert stats.sequence_are_numbers([1, 2.5, 3]), "sequence_are_numbers should return True for all numeric sequence"
+    assert sequence_are_numbers([1, 2.5, 3]), "sequence_are_numbers should return True for all numeric sequence"
 
 def test_sequence_are_numbers_non_numeric():
     """Test sequence_are_numbers returns False if any element is not numeric."""
-    assert not stats.sequence_are_numbers([1, 'a', 3]), "sequence_are_numbers should return False if any element is not numeric"
+    assert not sequence_are_numbers([1, 'a', 3]), "sequence_are_numbers should return False if any element is not numeric"
 
 def test_sequence_are_numbers_nan_inf():
     """Test sequence_are_numbers returns False if any element is NaN or infinite."""
-    assert not stats.sequence_are_numbers([1, float('nan'), 3]), "sequence_are_numbers should return False if any element is NaN"
-    assert not stats.sequence_are_numbers([1, float('inf'), 3]), "sequence_are_numbers should return False if any element is infinite"
+    assert not sequence_are_numbers([1, float('nan'), 3]), "sequence_are_numbers should return False if any element is NaN"
+    assert not sequence_are_numbers([1, float('inf'), 3]), "sequence_are_numbers should return False if any element is infinite"
 
 
 # --- Additional coverage tests ---
 def test_median_index_not_numeric():
     """Test median_index raises NotNumericSequenceError for non-numeric input."""
-    with pytest.raises(stats.NotNumericSequenceError):
-        stats.median_index(['a', 2, 3])
+    with pytest.raises(NotNumericSequenceError):
+        median_index(['a', 2, 3])
 
 def test_sequence_are_numbers_none():
     """Test sequence_are_numbers raises InvalidSequenceError for None input."""
-    with pytest.raises(stats.InvalidSequenceError):
-        stats.sequence_are_numbers(None)
+    with pytest.raises(InvalidSequenceError):
+        sequence_are_numbers(None)
 
 
 # --- BoxPlot class tests ---
@@ -111,7 +112,7 @@ def test_boxplot_as_dict_and_str():
     """Test BoxPlot.as_dict() and __str__() for correct output and keys."""
     # Typical case
     data = [1, 2, 3, 4, 5, 6]
-    bp = stats.BoxPlot(data)
+    bp = BoxPlot(data)
     d = bp.as_dict()
     # Check all expected keys are present
     for key in ['min', 'q1', 'median', 'q2', 'q3', 'max', 'data_list', 'iqr', 'range']:
@@ -127,7 +128,7 @@ def test_boxplot_as_dict_and_str():
 def test_boxplot_properties():
     """Test BoxPlot properties: range, iqr, iqr_balance, whisker_balance."""
     data = [1, 2, 3, 4, 5, 6, 7, 8]
-    bp = stats.BoxPlot(data)
+    bp = BoxPlot(data)
     # Test range
     assert bp.range == bp.max - bp.min, "BoxPlot.range should be max - min"
     # Test iqr
@@ -145,23 +146,23 @@ def test_boxplot_properties():
 
 def test_boxplot_invalid_sequence():
     """Test BoxPlot raises InvalidSequenceError for non-sequence input."""
-    with pytest.raises(stats.InvalidSequenceError):
-        stats.BoxPlot(None)
+    with pytest.raises(InvalidSequenceError):
+        BoxPlot(None)
 
 def test_boxplot_not_numeric():
     """Test BoxPlot raises NotNumericSequenceError for non-numeric sequence."""
-    with pytest.raises(stats.NotNumericSequenceError):
-        stats.BoxPlot([1, 'a', 3, 4])
+    with pytest.raises(NotNumericSequenceError):
+        BoxPlot([1, 'a', 3, 4])
 
 def test_boxplot_too_short():
     """Test BoxPlot raises ValueError for sequence shorter than 4 elements."""
     with pytest.raises(ValueError):
-        stats.BoxPlot([1, 2, 3])
+        BoxPlot([1, 2, 3])
 
 def test_boxplot_inclusive_method():
     """Test BoxPlot with inclusive quantile method."""
     data = [1, 2, 3, 4, 5, 6, 7, 8]
-    bp = stats.BoxPlot(data, quantile_method='inclusive')
-    assert isinstance(bp, stats.BoxPlot), "BoxPlot should be created with inclusive method"
+    bp = BoxPlot(data, quantile_method='inclusive')
+    assert isinstance(bp, BoxPlot), "BoxPlot should be created with inclusive method"
 
 
