@@ -1,9 +1,9 @@
 import math as Math
 import statistics as Statistics
 try:
-    from . import console  # For package usage
+    from .pytils import console  # For package usage
 except ImportError:
-    import pytils.console as console         # For direct script usage
+    import console as console         # For direct script usage
 from typing import Literal
 from pprint import pprint
 

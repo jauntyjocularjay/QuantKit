@@ -1,8 +1,8 @@
 import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
-import PyTils.stats as stats
-import PyTils.console as console
+import pytils.stats as stats
+import pytils.console as console
 import pytest
 from typing import Literal
 

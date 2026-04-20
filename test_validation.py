@@ -1,6 +1,6 @@
 import unittest
 import math
-from PyTils.validation import sequence_are_numbers, InvalidSequenceError, NotNumericSequenceError
+from pytils.validation import sequence_are_numbers, InvalidSequenceError, NotNumericSequenceError
 
 class TestSequenceAreNumbers(unittest.TestCase):
     def test_valid_numeric_list(self):

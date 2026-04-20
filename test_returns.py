@@ -1,6 +1,6 @@
 import pytest
-from PyTils.returns import return_original_sequence_type
-from PyTils.validation import InvalidSequenceError, NotNumericSequenceError
+from returns import return_original_sequence_type
+from validation import InvalidSequenceError, NotNumericSequenceError
 from collections import deque, UserList
 from array import array as Array
 
