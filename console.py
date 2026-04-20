@@ -12,3 +12,4 @@ def clear():
 
     # lines added in case of terminal overhang on some terminals.
     print("\n\n")
+

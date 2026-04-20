@@ -1,1 +1,3 @@
-pip install pytest pytest-cov
+#!/bin/bash
+
+pip install -r requirements.txt
