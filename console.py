@@ -11,5 +11,5 @@ def clear():
     subprocess.run('clear' if os.name == 'posix' else 'cls', shell=True)
 
     # lines added in case of terminal overhang on some terminals.
-    print("\n\n")
+    print('\n\n')
 

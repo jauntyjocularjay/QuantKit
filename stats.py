@@ -33,7 +33,7 @@ IQR = 'iqr'
 TUKEY_FENCE = 'tukey_fence'
 
 def median_index(data_list: Sequence):
-    """ Returns the index or indices of the median value(s) in a sorted version of the input list.
+    ''' Returns the index or indices of the median value(s) in a sorted version of the input list.
 
     - For an odd-length list, returns a single-element tuple containing the index of the median.
     - For an even-length list, returns a tuple containing the indices of the two middle values.
@@ -48,7 +48,7 @@ def median_index(data_list: Sequence):
     Examples:
         median_index([1, 2, 3, 4, 5, 6, 7])  # returns (3,)
         median_index([1, 2, 3, 4, 5, 6])     # returns (2, 3)
-    """
+    '''
 
     if data_list is None:
         return ()
@@ -70,10 +70,10 @@ def median_index(data_list: Sequence):
         return (lower_index, higher_index)
 
 def interquartile_slice(data_list: Sequence):
-    """ Returns the data points within the interquartile range (IQR) of the input list using 
+    ''' Returns the data points within the interquartile range (IQR) of the input list using 
     index-based slicing.
 
-    - This function sorts the input data and returns a slice containing the "middle 50%" of 
+    - This function sorts the input data and returns a slice containing the 'middle 50%' of 
     values, i.e., those between the lower and upper quartiles, using integer indices (no 
     interpolation).
     - This is not the standard IQR value (Q3 - Q1), but rather the actual data points that fall 
@@ -88,7 +88,7 @@ def interquartile_slice(data_list: Sequence):
 
     Example:
         iqr_slice([1, 2, 3, 4, 5, 6, 7, 8, 9])  # returns [3, 4, 5, 6, 7]
-    """
+    '''
 
     if data_list is None:
         return None
@@ -122,7 +122,7 @@ class BoxPlot:
     q3: Union[float, int]
     data_list: Sequence
     
-    """Represents a box plot summary for a numeric sequence (min, Q1, median, Q3, max).
+    '''Represents a box plot summary for a numeric sequence (min, Q1, median, Q3, max).
 
     This class computes and stores the five-number summary required for a box plot:
         1. minimum, 
@@ -161,7 +161,7 @@ class BoxPlot:
             boxplot:    min * {min} ---- q1 [ {q1}     median | {median}     q3 ] {q3} ---- max * {max}]
         This is useful for quick inspection of the five-number summary in logs or printouts.
         For a traditional logging instead, use BoxPlot.as_dict() when you print the result.
-    """
+    '''
     def __init__(self, data_list: Sequence, quantile_method: Literal['exclusive', 'inclusive'] = 'exclusive'):
         if data_list is None or not isinstance(data_list, Sequence):
             raise InvalidSequenceError
@@ -180,20 +180,20 @@ class BoxPlot:
 
     @property
     def min(self):
-        """ returns the first value within the Tukey Fence or the first value in a given sequence.
+        ''' returns the first value within the Tukey Fence or the first value in a given sequence.
 
         Returns:
             num: either the first value within the Tukey Fence or the first value in the sequence.
-        """
+        '''
         return next((x for x in self.data_list if x >= self.tukey_fence[SEQUENCE_MINIMUM]), self.data_list[0])
 
     @property
     def max(self):
-        """ returns the last value within the Tukey Fence or the last value in a given sequence.
+        ''' returns the last value within the Tukey Fence or the last value in a given sequence.
 
         Returns:
             num: either the last value within the Tukey Fence or the last value in the sequence.
-        """
+        '''
         return next((x for x in reversed(self.data_list) if x <= self.tukey_fence[SEQUENCE_MAXIMUM]), self.data_list[-1])
 
     @property

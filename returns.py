@@ -6,7 +6,7 @@ from .validation import sequence_are_numbers, InvalidSequenceError, NotNumericSe
 
 
 def original_sequence_type(input_type: type, data_list: Sequence):
-    """ Return a sequence of the same type as input_type, populated with data_list's elements.
+    ''' Return a sequence of the same type as input_type, populated with data_list's elements.
 
     Converts the provided data_list into a set, tuple, or list, matching the type of input_type.
     If input_type is set, returns a set, if tuple, returns a tuple, otherwise, returns a list.
@@ -22,7 +22,7 @@ def original_sequence_type(input_type: type, data_list: Sequence):
         basic_sequence(list, [1, 2, 3])   # returns [1, 2, 3]
         basic_sequence(tuple, [1, 2, 3])  # returns (1, 2, 3)
         basic_sequence(set, [1, 2, 3])    # returns {1, 2, 3}
-    """
+    '''
     if not isinstance(data_list, Sequence):
         raise TypeError(f'{input_type} must be a sequence.')
     

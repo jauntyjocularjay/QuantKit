@@ -1,6 +1,7 @@
 #!/bin/bash
 
 cd .. 
-pytest -v --cov=pytils
+clear
+python -m pytest -v --cov=pytils
 cd pytils
 
