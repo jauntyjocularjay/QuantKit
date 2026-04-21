@@ -5,15 +5,17 @@ try:
 except ImportError:
     import console as console    # For direct script usage
 from fractions import Fraction
+from dataclasses import dataclass, field
+from typing import Literal, Union
 from enum import Enum
 from typing import Literal
 from pprint import pprint
 
 console.clear()
 
-UNION = '∪'
-INTERSECTION = '∩'
-GIVEN = '|'
+UNION_SYM = '∪'
+INTERSECTION_SYM = '∩'
+GIVEN_SYM = '|'
 OUTCOME = 'outcome'
 ALL_OUTCOMES = 'all_outcomes'
 DESIRED_OUTCOMES = 'desired_outcomes'
@@ -23,12 +25,12 @@ FAIR_COMPLEMENT = 'fair_complement'
 class Event(Enum):
     DEPENDENT = 'dependent'
     INDEPENDENT = 'independent'
-    MUTUALL_EXCLUSIVE = 'mutually_exlusive'
-
+    MUTUAL_EXCLUSIVE = 'mutually_exlusive'
 
 
 class Outcome:
-    _key: str
+    ''' Work In Progress '''
+    _key: Union[str, int, float]
 
     def __init__(self, key, weight: Fraction = Fraction(1,1)):
         Outcome.key_is_valid(key)
@@ -109,8 +111,8 @@ class FairProbability:
     @property
     def as_dict(self):
         return {
-            DESIRED_OUTCOMES: self.all_outcomes,
-            ALL_OUTCOMES: self.desired_outcomes,
+            DESIRED_OUTCOMES: self.desired_outcomes,
+            ALL_OUTCOMES: self.all_outcomes,
             FAIR_PROBABILITY: self.fair_probability,
             FAIR_COMPLEMENT: self.fair_complement
         }
@@ -130,7 +132,7 @@ desired_outcomes = {'tt', 'hh'}
 
 cf = FairProbability(outcomes, desired_outcomes)
 
-print(f'desired_outcomes:outcomes => {desired_outcomes}:{outcomes}')
+print(f'desired_outcomes:all_outcomes => {desired_outcomes}:{outcomes}')
 print(f'fair probability + complement = {cf.fair_probability + cf.fair_complement}')
 print(f'cloinflip = ')
 pprint(cf.as_dict)
