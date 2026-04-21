@@ -27,9 +27,11 @@ class Event(Enum):
     INDEPENDENT = 'independent'
     MUTUAL_EXCLUSIVE = 'mutually_exlusive'
 
-
+@dataclass
 class Outcome:
-    ''' Work In Progress '''
+    ''' Outcome is a class for holding data as a building block for probabilities.
+    Work In Progress
+    '''
     _key: Union[str, int, float]
 
     def __init__(self, key, weight: Fraction = Fraction(1,1)):

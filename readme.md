@@ -2,6 +2,10 @@
 
 A collection of python utilities I created because why in Hades are these not already implemented in the standard library?
 
+## LLM Disclosure
+
+All working base code is written by an actual human, [@jauntyjocularjay](https://github.com/jauntyjocularjay). LLM @Copilot is used to author documentation, docstrings, and unit tests with editing and fine tuning by @jauntyjocularjay.
+
 ## `console.py`
 
 ### `console.clear()`
