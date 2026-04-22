@@ -1,15 +1,17 @@
 import math as Math
 import statistics as Statistics
+import itertools as Itertools
 try:
-    from . import console  # For package usage
+    from . import console       # For package usage
 except ImportError:
-    import console as console    # For direct script usage
+    import console as console   # For direct script usage
 from fractions import Fraction
 from dataclasses import dataclass, field
 from typing import Literal, Union
 from enum import Enum
 from typing import Literal
 from pprint import pprint
+from validation import *
 
 console.clear()
 
@@ -21,6 +23,8 @@ ALL_OUTCOMES = 'all_outcomes'
 DESIRED_OUTCOMES = 'desired_outcomes'
 FAIR_PROBABILITY = 'fair_probability'
 FAIR_COMPLEMENT = 'fair_complement'
+PROBABILITY = 'probability'
+COMPLEMENT = 'complement'
 
 class Event(Enum):
     DEPENDENT = 'dependent'
@@ -33,6 +37,7 @@ class Outcome:
     Work In Progress
     '''
     _key: Union[str, int, float]
+    _weight: Union[Fraction] # int, None] # TBA
 
     def __init__(self, key, weight: Fraction = Fraction(1,1)):
         Outcome.key_is_valid(key)
@@ -62,6 +67,9 @@ class Outcome:
     def __str__(self):
         return f'{{ \'{self._key}\': {self._weight} }}'
     
+    def __repr__(self):
+        return self.__str__()
+    
     def __eq__(self, other):
         Outcome.is_outcome(other)
         return self.key == other.key
@@ -82,19 +90,25 @@ class Outcome:
         Outcome.weight_is_fraction(weight)
         self._weight = weight
 
+    @property
+    def as_dict(self):
+        return {self.key: self.weight}
+
 class Probability:
-    def __init__(self, outcomes: set):
-        Probability.is_set_of_outcomes(outcomes)
-        
-        self._outcomes = outcomes
+    def __init__(self, sample_space: set):
+        Probability.is_set_of_outcomes(sample_space)
+        self._sample_space = sample_space
     
     @classmethod
     def is_set_of_outcomes(cls, outcomes):
-        if not isinstance(outcomes, set): raise TypeError(f'Probability.outcomes must be a set')
+        validate_as(outcomes, set)
 
         for x in outcomes:
-            if not isinstance(x, Outcome): raise TypeError('Probability.outcomes may only contains Outcomes')
+            validate_as(x, Outcome)
 
+    @property
+    def sample_space(self):
+        return self._sample_space
 
 
 
@@ -128,13 +142,27 @@ class FairProbability:
         return Fraction(len(self.all_outcomes) - len(self.desired_outcomes), len(self.all_outcomes))
 
 
+one_six = Fraction(1,6)
+one_twenty = Fraction(1,20)
 # ex. Coin flipping Heads or Tails twice in a row
-outcomes = {'th','ht','tt','hh'}
-desired_outcomes = {'tt', 'hh'}
 
-cf = FairProbability(outcomes, desired_outcomes)
+def single_fair_outcomes(string:str = 's', number_of_outcomes: int = 6):
+    validate_as(string, str)
+    validate_as(number_of_outcomes, int)
 
-print(f'desired_outcomes:all_outcomes => {desired_outcomes}:{outcomes}')
-print(f'fair probability + complement = {cf.fair_probability + cf.fair_complement}')
-print(f'cloinflip = ')
-pprint(cf.as_dict)
+    return {Outcome(f'{string}{_}', Fraction(1, number_of_outcomes)) for _ in range(1,number_of_outcomes)}
+
+def all_combinations(unique_outcomes: str = 'th', trials: int = 2):
+    validate_as(unique_outcomes, str)
+    return {''.join(p) for p in Itertools.product(unique_outcomes, repeat=trials)}
+
+outcomes = single_fair_outcomes('s', 20)
+
+print('1d6 outcomes:')
+for outcome in sorted(outcomes, key=lambda o: o._key):
+    print(outcome)
+
+print(f'coin toss all_combinations: {all_combinations('th', 5)}')
+
+
+
