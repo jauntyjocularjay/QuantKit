@@ -8,8 +8,8 @@ from typing import Literal, Union
 from enum import Enum
 from typing import Literal
 from pprint import pprint
-from pytilities import console
-from pytilities.validation import *
+from ..pytilities import console
+from ..pytilities.validation import *
 from constants import *
 
 

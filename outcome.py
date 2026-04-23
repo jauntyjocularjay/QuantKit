@@ -3,7 +3,7 @@ from enum import Enum
 from fractions import Fraction
 from dataclasses import dataclass, field
 from typing import Union
-from pytilities.validation import *
+from ..pytilities.validation import *
 
 class outcome:
     ''' Outcome represents a single possible result in a probability space, with an associated key and weight.

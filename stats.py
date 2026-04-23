@@ -1,16 +1,16 @@
 # For package usage
 try: 
-    from pytilities import console 
+    from ..pytilities import console 
 # For direct script usage
 except ImportError:
-    from pytilities import console as console
+    from ..pytilities import console as console
 import statistics as Statistics
 from dataclasses import dataclass, field
 from collections.abc import Sequence
 from typing import Literal, Union
 from pprint import pprint
-from pytilities.validation import *
-from pytilities.returns import *
+from ..pytilities.validation import *
+from ..pytilities.returns import *
 
 def median_index(data_list: Sequence):
     ''' Returns the index or indices of the median value(s) in a sorted version of the input list.
