@@ -110,3 +110,28 @@ poetry run pytest --cov=PyTils --cov-report=term -v PyTils/tests/test_stats.py
 ```
 
 All tests are DRY, readable, and use the latest API and key constants. See `tests/test_stats.py` for examples.
+
+## ListSet Checklist
+
+### Mutator Methods
+
+- [ ] Assignment (__setitem__ and slice assignment): Users can do lst[2] = x or lst[1:3] = [x, y]. You should override these to enforce uniqueness.
+- [ ] In-place addition (__iadd__): lst += [x, y] should also check for duplicates.
+- [ ] Multiplication (__imul__): lst *= n could introduce duplicates if not blocked or handled.
+- [ ] Copying and Construction Methods like copy() or using the constructor with an existing ListSet should preserve uniqueness.
+
+### Performance
+
+- [ ] self.count(x) is O(n). For large lists, consider maintaining an internal set for O(1) membership checks, but this adds complexity.
+
+### Equality and Hashing
+
+- [ ] If you want ListSet([1,2]) == ListSet([2,1]) to be True, you’ll need to override __eq__. Otherwise, it will behave like a list (order matters).
+
+### Documentation
+
+- [ ] Clearly document that your class enforces uniqueness and how it handles order.
+
+### Testing
+
+- [ ] Test all mutating methods, including edge cases (e.g., inserting at various positions, slice assignment, etc).

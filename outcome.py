@@ -15,8 +15,9 @@ class outcome:
     comparison, and representation.
 
     Attributes:
-        _key (str | int | float): The unique identifier for the outcome. Must not be inf or nan if float.
-        _weight (Fraction): The weight or probability associated with the outcome.
+        * _key (str | int | float): The unique identifier for the outcome. Must not be inf or nan if float.
+        * _weight (Fraction): The weight or probability associated with the outcome. This value MUST be less than
+          abs(1) => |1|. Negative values are acceptable.
 
     Methods:
         key_is_valid(key): Validates that the key is an acceptable type and value.
@@ -39,18 +40,18 @@ class outcome:
 
         outcome.key_is_valid(key)
         validate_as(weight, (Fraction, int, float))
-        
-
 
         self._key = key
 
         if isinstance(weight, float):
             validate_float(weight)
+            if(abs(weight) > 1): weight = 1 / weight
             self.weight = Fraction(weight)
 
         elif isinstance(weight, int):
-            self.weight = Fraction(weight, 1)
-        
+            if self.weight == 0 : self.weight = Fraction(0, 1)
+            else: self.weight = Fraction(1 / weight)
+
         else:
             self.weight = weight
 
@@ -71,14 +72,14 @@ class outcome:
 
     def __str__(self):
         return f'{{ \'{self._key}\': {self._weight} }}'
-    
+
     def __repr__(self):
         return self.__str__()
-    
+
     def __eq__(self, other):
         outcome.is_outcome(other)
         return self.key == other.key
-    
+
     def __hash__(self):
         return hash(self.key)
 
@@ -89,7 +90,7 @@ class outcome:
     @property
     def weight(self):
         return self._weight
-    
+
     @weight.setter
     def weight(self, weight: Fraction):
         outcome.weight_is_fraction(weight)
