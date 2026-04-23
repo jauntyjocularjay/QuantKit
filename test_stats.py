@@ -1,10 +1,11 @@
+import pytest
 import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
-from .validation import sequence_are_numbers, InvalidSequenceError, NotNumericSequenceError
-from .stats import median_index, interquartile_slice, iqs, BoxPlot
-from .console import clear
-import pytest
+from pytilities.validation import sequence_are_numbers, InvalidSequenceError, NotNumericSequenceError
+from .stats import *
+from .boxplot import *
+from pytilities.console import clear
 from typing import Literal
 
 

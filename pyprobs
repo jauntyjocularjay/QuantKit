@@ -1,4 +1,4 @@
 #!/bin/bash
 
-cd .. && python -m pytils.probs && cd pytils
+cd .. && python -m quantkit.probs && cd quantkit
 

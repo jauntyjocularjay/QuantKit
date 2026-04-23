@@ -1,117 +1,19 @@
 import math as Math
 import statistics as Statistics
 import itertools as Itertools
-try:
-    from . import console       # For package usage
-except ImportError:
-    import console as console   # For direct script usage
+from outcome import outcome as Outcome
 from fractions import Fraction
 from dataclasses import dataclass, field
 from typing import Literal, Union
 from enum import Enum
 from typing import Literal
 from pprint import pprint
-from validation import *
+from pytilities import console
+from pytilities.validation import *
+from constants import *
+
 
 console.clear()
-
-UNION_SYM = '∪'
-INTERSECTION_SYM = '∩'
-GIVEN_SYM = '|'
-OUTCOME = 'outcome'
-ALL_OUTCOMES = 'all_outcomes'
-DESIRED_OUTCOMES = 'desired_outcomes'
-FAIR_PROBABILITY = 'fair_probability'
-FAIR_COMPLEMENT = 'fair_complement'
-PROBABILITY = 'probability'
-COMPLEMENT = 'complement'
-
-class Event(Enum):
-    DEPENDENT = 'dependent'
-    INDEPENDENT = 'independent'
-    MUTUAL_EXCLUSIVE = 'mutually_exlusive'
-
-@dataclass
-class Outcome:
-    ''' Outcome is a class for holding data as a building block for probabilities.
-    Work In Progress
-    '''
-    _key: Union[str, int, float]
-    _weight: Union[Fraction] # int, None] # TBA
-
-    def __init__(self, key, weight: Fraction = Fraction(1,1)):
-        Outcome.key_is_valid(key)
-        Outcome.weight_is_fraction(weight)
-
-        object.__setattr__(self, '_key', key)
-        self._weight = weight
-
-    @classmethod
-    def key_is_valid(cls, key):
-        if isinstance(key, float) and (Math.isinf(key) or Math.isnan(key)):
-            raise TypeError(f'{{key: {key}}} cannot be {Math.inf} or {Math.nan}')
-        elif isinstance(key, (str, int, bool)):
-            return
-        else:
-            raise TypeError(f'{{key: {key}}} must be a string, int, float, bool (not inf/nan)')
-
-    @classmethod
-    def weight_is_fraction(cls, weight):
-        if not isinstance(weight, Fraction):
-            raise TypeError(f'{{weight: {weight}}} must be a fraction')
-
-    @classmethod
-    def is_outcome(cls, other):
-        if not isinstance(other, Outcome): raise TypeError(f'{{{other}}} is not an outcome')
-
-    def __str__(self):
-        return f'{{ \'{self._key}\': {self._weight} }}'
-    
-    def __repr__(self):
-        return self.__str__()
-    
-    def __eq__(self, other):
-        Outcome.is_outcome(other)
-        return self.key == other.key
-    
-    def __hash__(self):
-        return hash(self.key)
-
-    @property
-    def key(self):
-        return self._key
-
-    @property
-    def weight(self):
-        return self._weight
-    
-    @weight.setter
-    def weight(self, weight: Fraction):
-        Outcome.weight_is_fraction(weight)
-        self._weight = weight
-
-    @property
-    def as_dict(self):
-        return {self.key: self.weight}
-
-class Probability:
-    def __init__(self, sample_space: set):
-        Probability.is_set_of_outcomes(sample_space)
-        self._sample_space = sample_space
-    
-    @classmethod
-    def is_set_of_outcomes(cls, outcomes):
-        validate_as(outcomes, set)
-
-        for x in outcomes:
-            validate_as(x, Outcome)
-
-    @property
-    def sample_space(self):
-        return self._sample_space
-
-
-
 
 class FairProbability:
     def __init__(self, outcome_set: set, desired_outcome_set: set):
@@ -141,16 +43,11 @@ class FairProbability:
     def fair_complement(self):
         return Fraction(len(self.all_outcomes) - len(self.desired_outcomes), len(self.all_outcomes))
 
-
-one_six = Fraction(1,6)
-one_twenty = Fraction(1,20)
-# ex. Coin flipping Heads or Tails twice in a row
-
 def single_fair_outcomes(string:str = 's', number_of_outcomes: int = 6):
     validate_as(string, str)
     validate_as(number_of_outcomes, int)
 
-    return {Outcome(f'{string}{_}', Fraction(1, number_of_outcomes)) for _ in range(1,number_of_outcomes)}
+    return {outcome(f'{string}{_}', Fraction(1, number_of_outcomes)) for _ in range(1,number_of_outcomes)}
 
 def all_combinations(unique_outcomes: str = 'th', trials: int = 2):
     validate_as(unique_outcomes, str)
@@ -158,6 +55,10 @@ def all_combinations(unique_outcomes: str = 'th', trials: int = 2):
 
 outcomes = single_fair_outcomes('s', 20)
 
+one_six = Fraction(1,6)
+one_twenty = Fraction(1,20)
+
+# ex. Coin flipping Heads or Tails twice in a row
 print('1d6 outcomes:')
 for outcome in sorted(outcomes, key=lambda o: o._key):
     print(outcome)

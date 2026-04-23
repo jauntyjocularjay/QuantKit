@@ -1,7 +1,0 @@
-#!/bin/bash
-
-cd .. 
-clear
-python -m pytest -v --cov=pytils
-cd pytils
-
