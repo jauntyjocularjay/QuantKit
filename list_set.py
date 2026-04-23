@@ -18,13 +18,13 @@ class ListSet(list):
 
     # append(x) — Adds an item to the end.
     def append(self, value):
-        validate_uniqueness(self,value)
+        validate_uniqueness(self.lookup_set, value)
         super().append(value)
         self.lookup_set = set(super())
 
     # insert(i, x) — Inserts an item at a given position.
     def insert(self, i, value):
-        validate_uniqueness(self, value)
+        validate_uniqueness(self.lookup_set, value)
         super().insert(i, value)
         self.lookup_set = set(super())
 
