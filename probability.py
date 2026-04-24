@@ -1,7 +1,6 @@
 
-from ..pytilities.validation import *
-from outcome import outcome as Outcome
-from collections.abc import Iterable
+from pytilities.validation import *
+from quantkit.outcome import outcome as Outcome
 
 
 

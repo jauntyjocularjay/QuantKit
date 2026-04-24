@@ -2,9 +2,9 @@ import pytest
 import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
-from pytilities.validation import sequence_are_numbers, InvalidSequenceError, NotNumericSequenceError
-from .stats import *
-from .boxplot import *
+from pytilities.validation import *
+from quantkit.stats import *
+from quantkit.boxplot import *
 from pytilities.console import clear
 from typing import Literal
 
@@ -77,7 +77,7 @@ def test_invalid_sequence_error():
 
 def test_not_numeric_sequence_error():
     '''Test NotNumericSequenceError can be raised and has correct message.'''
-    with pytest.raises(NotNumericSequenceError, match='real numbers'):
+    with pytest.raises(NotNumericSequenceError, match='expected a'):
         raise NotNumericSequenceError()
 
 

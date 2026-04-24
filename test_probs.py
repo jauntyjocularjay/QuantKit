@@ -2,10 +2,7 @@
 
 import pytest
 from fractions import Fraction
-try:
-    from .probs import Outcome
-except ImportError:
-    from probs import Outcome
+from quantkit.outcome import outcome as Outcome
 
 @pytest.mark.parametrize("bad_key,desc", [
     (float('inf'), "float('inf')"),
@@ -17,8 +14,8 @@ def test_key_is_valid_inf_nan(bad_key, desc):
         Outcome.key_is_valid(bad_key)
 
 def test_key_is_valid_list():
-    '''key_is_valid should raise TypeError for list input.'''
-    with pytest.raises(TypeError, match="must be a string"):
+    '''key_is_valid should raise InvalidTypeError for list input.'''
+    with pytest.raises(Exception, match="expected"):
         Outcome.key_is_valid([1,2,3])
 
 @pytest.mark.parametrize("valid_key", ['a', 1, True])

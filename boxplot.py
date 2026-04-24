@@ -1,8 +1,6 @@
-from .stats import *
+from quantkit.stats import *
+from pytilities.validation import *
 
-
-
-console.clear()
 
 DATA_LIST = 'data_list'
 SEQUENCE_MINIMUM = 'min'
@@ -67,7 +65,7 @@ class BoxPlot:
         if data_list is None or not isinstance(data_list, Sequence):
             raise InvalidSequenceError
         if not sequence_are_numbers(data_list):
-            raise NotNumericSequenceError
+            raise NotNumericSequenceError()
         if len(data_list) < 4:
             raise ValueError('argument must have at least length 4')
 
@@ -148,6 +146,3 @@ class BoxPlot:
 
     def __str__(self):
         return f'boxplot:    min * {self.min} ---- q1 [ {self.q1}     median | {self.median}     q3 ] {self.q3} ---- max * {self.max}]'
-
-bp = BoxPlot([-1024, -512-64,-512, -512-128,136, 140, 178, 190, 205, 215, 217, 218, 232, 234, 240, 255, 270, 275, 290, 301, 303, 315, 317, 318, 326, 333, 343, 349, 360, 369, 377, 388, 391, 392, 398, 400, 402, 405, 408, 422, 429, 450, 475, 512, 1024])
-pprint(bp.as_dict())

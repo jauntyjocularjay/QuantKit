@@ -3,7 +3,7 @@ from enum import Enum
 from fractions import Fraction
 from dataclasses import dataclass, field
 from typing import Union
-from ..pytilities.validation import *
+from pytilities.validation import *
 
 class outcome:
     ''' Outcome represents a single possible result in a probability space, with an associated key and weight.
@@ -45,15 +45,18 @@ class outcome:
 
         if isinstance(weight, float):
             validate_float(weight)
-            if(abs(weight) > 1): weight = 1 / weight
-            self.weight = Fraction(weight)
+            if abs(weight) > 1:
+                weight = 1 / weight
+            self._weight = Fraction(weight)
 
         elif isinstance(weight, int):
-            if self.weight == 0 : self.weight = Fraction(0, 1)
-            else: self.weight = Fraction(1 / weight)
+            if weight == 0:
+                self._weight = Fraction(0, 1)
+            else:
+                self._weight = Fraction(1 / weight)
 
         else:
-            self.weight = weight
+            self._weight = weight
 
 
     @classmethod
