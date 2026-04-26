@@ -2,10 +2,10 @@ import pytest
 import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
-from pytilities.validation import *
-from quantkit.stats import *
-from quantkit.boxplot import *
-from pytilities.console import clear
+from .pytilities.validation import *
+from .stats import *
+from .boxplot import *
+from .pytilities.console import clear
 from typing import Literal
 
 

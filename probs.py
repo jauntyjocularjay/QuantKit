@@ -1,9 +1,9 @@
 import itertools as Itertools
 from fractions import Fraction
 from dataclasses import dataclass, field
-from pytilities import console
-from pytilities.validation import *
-from constants import *
+from .pytilities import console
+from .pytilities.validation import *
+from .constants import *
 
 
 

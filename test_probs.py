@@ -2,8 +2,8 @@
 
 import pytest
 from fractions import Fraction
-from quantkit.outcome import outcome as Outcome
-from pytilities.validation import *
+from .outcome import outcome as Outcome
+from .pytilities.validation import *
 
 @pytest.mark.parametrize("bad_key,desc", [
     (float('inf'), "float('inf')"),

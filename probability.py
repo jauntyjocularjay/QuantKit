@@ -1,6 +1,6 @@
 
 from pytilities.validation import *
-from quantkit.outcome import outcome as Outcome
+from .outcome import outcome as Outcome
 
 
 

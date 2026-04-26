@@ -1,4 +1,4 @@
-from quantkit.stats import *
+from .stats import *
 from pytilities.validation import *
 
 
