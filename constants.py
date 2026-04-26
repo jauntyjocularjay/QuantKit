@@ -1,13 +1,12 @@
 from enum import Enum
 
+class Symbol(Enum):
+    UNION = '∪'         # Equivalent to the || operator
+    OR = '∨'            # Equivalent to the || operator
+    INTERSECT = '∩'     # Equivalent to the && operator
+    AND = '∧'           # Equivalent to the && operator
+    GIVEN = '|'         # AKA conditional or given
 
-
-
-UNION_SYM = '∪'         # Equivalent to the || operator
-LOR_SYM = '∨'           # Equivalent to the || operator
-INTERSECTION_SYM = '∩'  # Equivalent to the && operator
-LAND_SYM = '∧'          # Equivalent to the && operator
-GIVEN_SYM = '|'
 OUTCOME = 'outcome'
 ALL_OUTCOMES = 'all_outcomes'
 DESIRED_OUTCOMES = 'desired_outcomes'

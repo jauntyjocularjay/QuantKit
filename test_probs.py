@@ -3,14 +3,15 @@
 import pytest
 from fractions import Fraction
 from quantkit.outcome import outcome as Outcome
+from pytilities.validation import *
 
 @pytest.mark.parametrize("bad_key,desc", [
     (float('inf'), "float('inf')"),
     (float('nan'), "float('nan')"),
 ])
 def test_key_is_valid_inf_nan(bad_key, desc):
-    '''key_is_valid should raise TypeError for inf/nan.'''
-    with pytest.raises(TypeError, match="cannot be"), pytest.raises(Exception):
+    '''key_is_valid should raise ProhibitedValueError for inf/nan.'''
+    with pytest.raises(ProhibitedValueError, match="not to be any of"):
         Outcome.key_is_valid(bad_key)
 
 def test_key_is_valid_list():

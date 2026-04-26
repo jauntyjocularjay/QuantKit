@@ -62,7 +62,7 @@ class outcome:
     @classmethod
     def key_is_valid(cls, key):
         validate_as(key, (str, int, float, bool, Enum))
-        if isinstance(key, float): validate_float(float)
+        if isinstance(key, float): validate_float(key)
 
     @classmethod
     def weight_is_fraction(cls, weight):
