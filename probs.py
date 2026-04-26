@@ -6,7 +6,6 @@ from pytilities.validation import *
 from constants import *
 
 
-console.clear()
 
 class FairProbability:
     def __init__(self, outcome_set: set, desired_outcome_set: set):
@@ -45,18 +44,4 @@ def single_fair_outcomes(string:str = 's', number_of_outcomes: int = 6):
 def all_combinations(unique_outcomes: str = 'th', trials: int = 2):
     validate_as(unique_outcomes, str)
     return {''.join(p) for p in Itertools.product(unique_outcomes, repeat=trials)}
-
-outcomes = single_fair_outcomes('s', 20)
-
-one_six = Fraction(1,6)
-one_twenty = Fraction(1,20)
-
-# ex. Coin flipping Heads or Tails twice in a row
-print('1d6 outcomes:')
-for outcome in sorted(outcomes, key=lambda o: o._key):
-    print(outcome)
-
-print(f'coin toss all_combinations: {all_combinations('th', 5)}')
-
-
 
