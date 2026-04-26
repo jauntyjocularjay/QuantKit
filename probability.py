@@ -1,5 +1,5 @@
 
-from pytilities.validation import *
+from .pytilities.validation import *
 from .outcome import outcome as Outcome
 
 

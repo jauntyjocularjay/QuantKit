@@ -1,5 +1,5 @@
 from .stats import *
-from pytilities.validation import *
+from .pytilities.validation import *
 
 
 DATA_LIST = 'data_list'

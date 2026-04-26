@@ -1,4 +1,0 @@
-#!/bin/bash
-
-cd .. && python -m quantkit.stats && cd quantkit
-
