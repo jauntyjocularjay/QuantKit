@@ -31,7 +31,7 @@ class MissingEventModifierError(ValueError):
 
 
 class event_descriptor:
-    ''' An event descriptor is used to map out or label an event or group of events by describing their outcome with a number and a str. 
+    ''' An event descriptor is used to map out or label an event or group of events by describing their outcome.
     '''
 
     _symbol: str
