@@ -1,11 +1,10 @@
-
 from .pytilities.validation import *
 from .outcome import outcome as Outcome
 
 
 
 class Probability:
-    '''
+    ''' Probability represents a probability function. 
     '''
     def __init__(self, sample_space: set):
         Probability.is_set_of_outcomes(sample_space)
@@ -21,11 +20,5 @@ class Probability:
     @property
     def sample_space(self):
         return self._sample_space
-
-
-
-
-
-
 
 

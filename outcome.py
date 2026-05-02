@@ -65,11 +65,6 @@ class outcome:
         if isinstance(key, float): validate_float(key)
 
     @classmethod
-    def weight_is_fraction(cls, weight):
-        if not isinstance(weight, Fraction):
-            raise TypeError(f'{{weight: {weight}}} must be a fraction')
-
-    @classmethod
     def is_outcome(cls, other):
         if not isinstance(other, outcome): raise TypeError(f'{{{other}}} is not an outcome')
 
@@ -96,7 +91,7 @@ class outcome:
 
     @weight.setter
     def weight(self, weight: Fraction):
-        outcome.weight_is_fraction(weight)
+        validate_as(weight, Fraction)
         self._weight = weight
 
     @property
