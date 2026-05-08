@@ -18,6 +18,12 @@ FAIR_PROBABILITY = 'fair_probability'
 FAIR_COMPLEMENT = 'fair_complement'
 PROBABILITY = 'probability'
 COMPLEMENT = 'complement'
+MEAN = 'mean'
+VALUE = 'value'
+SDEV = 'std_dev'
+FRAC = 'fraction'
+FLOAT = 'float'
+
 
 class EventType(Enum):
     DEPENDENT = 'dependent'

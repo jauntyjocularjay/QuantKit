@@ -1,9 +1,10 @@
 import itertools as Itertools
 from fractions import Fraction
-from dataclasses import dataclass, field
-from .pytilities import console
-from .pytilities.validation import *
-from .constants import *
+from typing import Union, Type
+from pytilities.validation import *
+from constants import *
+import math as Math
+from pprint import pprint
 
 
 
@@ -44,4 +45,38 @@ def single_fair_outcomes(string:str = 's', number_of_outcomes: int = 6):
 def all_combinations(unique_outcomes: str = 'th', trials: int = 2):
     validate_as(unique_outcomes, str)
     return {''.join(p) for p in Itertools.product(unique_outcomes, repeat=trials)}
+
+def geom(p: Union[Fraction, int, float], trials: int = 0, includes_success: bool = True):
+    validate_as(p, (Fraction, int, float))
+    if isinstance (p, float): validate_float(p)
+    validate_is_greater_than(p, 0)
+    validate_against(p,0)
+
+    p = Fraction(p)
+    q = Fraction(p.denominator - p.numerator, p.denominator)
+    value = p * pow(q,trials - 1) if includes_success else p * pow(q, trials)
+    mean = Fraction(p.denominator, p.numerator) if includes_success else Fraction(1-p, p)
+    variance = Fraction(q, p**2) 
+
+    return {
+        VALUE: {
+            FRAC: value,
+            FLOAT: float(value)
+        },
+        MEAN: {
+            FRAC: mean,
+            FLOAT: float(mean)},
+        SDEV: {
+            FRAC: f'sqrt({variance})',
+            FLOAT: float(Math.sqrt(variance))
+        }
+    }
+
+result =  geom(Fraction(5,16), 9)
+pprint(result)
+
+result =  geom(Fraction(5,16), 9, False)
+pprint(result)
+
+
 
