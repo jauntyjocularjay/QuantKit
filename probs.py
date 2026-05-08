@@ -40,7 +40,7 @@ def single_fair_outcomes(string:str = 's', number_of_outcomes: int = 6):
     validate_as(string, str)
     validate_as(number_of_outcomes, int)
 
-    return {outcome(f'{string}{_}', Fraction(1, number_of_outcomes)) for _ in range(1,number_of_outcomes)}
+    return {(f'{string}{_}', Fraction(1, number_of_outcomes)) for _ in range(1,number_of_outcomes)}
 
 def all_combinations(unique_outcomes: str = 'th', trials: int = 2):
     validate_as(unique_outcomes, str)
