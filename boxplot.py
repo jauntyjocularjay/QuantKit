@@ -1,6 +1,6 @@
 from .stats import *
 from .pytilities.validation import *
-
+from dataclasses import dataclass, field
 
 DATA_LIST = 'data_list'
 SEQUENCE_MINIMUM = 'min'

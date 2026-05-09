@@ -1,9 +1,11 @@
 # For package usage
 import statistics as Statistics
-from dataclasses import dataclass, field
+import math as Math
+# from dataclasses import dataclass, field
 from collections.abc import Sequence
 from typing import Literal, Union
-from pprint import pprint
+from fractions import Fraction
+from .constants import VALUE, COEF, FLOAT, MEAN, SDEV, FRAC
 from .pytilities.validation import *
 from .pytilities.returns import *
 
@@ -14,10 +16,10 @@ def median_index(data_list: Sequence):
     - For an even-length list, returns a tuple containing the indices of the two middle values.
 
     Parameters:
-        data_list (list, optional): The input list of values. Defaults to None.
+        data_list (Sequence): The input sequence of numeric values.
 
     Returns:
-        tuple: Indices of the median value(s) in the sorted list. Returns an empty tuple if the input 
+        tuple: Indices of the median value(s) in the sorted list. Returns an empty tuple if the input
           is None or empty.
 
     Examples:
@@ -55,14 +57,14 @@ def interquartile_slice(data_list: Sequence):
     within the IQR range. 
 
     Parameters:
-        data_list (Sequence): The input list of numeric values. Defaults to None.
+        data_list (Sequence): The input sequence of numeric values.
 
     Returns:
         list, set, or tuple: A slice of the sorted data representing the interquartile range,
         or None if the input is None or empty.
 
     Example:
-        iqr_slice([1, 2, 3, 4, 5, 6, 7, 8, 9])  # returns [3, 4, 5, 6, 7]
+        interquartile_slice([1, 2, 3, 4, 5, 6, 7, 8, 9])  # returns [3, 4, 5, 6, 7]
     '''
 
     if data_list is None:
@@ -86,8 +88,113 @@ def interquartile_slice(data_list: Sequence):
     return original_sequence_type(input_type, result)
 
 def iqs(data_list: Sequence):
+    """Alias for `interquartile_slice`. Returns the data points within the IQR of the input list."""
     return interquartile_slice(data_list)
 
+def binom(p: Union[Fraction, int, float], n_trials: int = 1, k_success: int = 1):
+    """Calculate binomial distribution statistics for a given probability of success.
 
+    Computes the probability, binomial coefficient, mean, and standard deviation for
+    the binomial distribution with probability of success `p`, `n_trials` total trials,
+    and `k_success` desired successes.
 
-# Classes
+    Parameters
+    ----------
+    p : Fraction | int | float
+        Probability of success on a single trial (0 < p < 1).
+    n_trials : int, optional
+        Total number of trials. Must be greater than `k_success`. Defaults to 1.
+    k_success : int, optional
+        Number of desired successes. Defaults to 1.
+
+    Returns
+    -------
+    dict
+        Dictionary with keys VALUE, COEF, MEAN, and SDEV:
+        - VALUE: Probability of exactly k_success successes in n_trials trials.
+        - COEF: Binomial coefficient C(n_trials, k_success).
+        - MEAN: Expected number of successes (n * p).
+        - SDEV: Standard deviation as both a symbolic string and a float.
+
+    Raises
+    ------
+    TypeError, ValueError
+        If input parameters are invalid or out of range.
+    """
+    validate_as(p, (Fraction, int, float))
+    if isinstance (p, float): validate_float(p)
+    validate_is_greater_than(p, 0)
+    validate_is_less_than(p,1)
+    validate_is_greater_than(n_trials, k_success)
+    validate_against(n_trials, (0,))
+    validate_against(p, (0, 1))
+
+    p = Fraction(p)
+    q = Fraction(p.denominator - p.numerator, p.denominator)
+    coefficient = Fraction(Math.factorial(n_trials), Math.factorial(k_success) * Math.factorial(n_trials - k_success))
+
+    product_of_success = p ** k_success
+    product_of_failure = q ** (n_trials - k_success)
+
+    return {
+        VALUE: coefficient * product_of_success * product_of_failure,
+        COEF: coefficient,
+        MEAN: n_trials * p,
+        SDEV: {
+            FRAC: f'sqrt({n_trials * p * q})',
+            FLOAT: Math.sqrt(n_trials * p * q)
+        }
+    }
+
+def geom(p: Union[Fraction, int, float], k_trials: int = 1, includes_success: bool = True):
+    """ Calculate geometric distribution statistics for a given probability of success.
+
+    Computes the probability, mean, and standard deviation for the geometric distribution
+    with probability of success `p` and number of trials `k_trials`. The function supports
+    both definitions: counting the trial on which the first success occurs (`includes_success=True`)
+    or the number of failures before the first success (`includes_success=False`).
+
+    Parameters
+    ----------
+    p : Fraction | int | float
+        Probability of success on a single trial (0 < p < 1).
+    k_trials : int, optional
+        The trial number (if includes_success=True) or number of failures (if includes_success=False).
+        Defaults to 1 (first trial).
+    includes_success : bool, optional
+        If True, k_trials counts the trial of first success (default). If False, counts failures before success.
+
+    Returns
+    -------
+    dict
+        Dictionary with keys VALUE, MEAN, and SDEV:
+        - VALUE: Probability of first success at k_trials as a Fraction.
+        - MEAN: Expected value as a Fraction.
+        - SDEV: Standard deviation as both a symbolic string (FRAC) and a float (FLOAT).
+
+    Raises
+    ------
+    TypeError, ValueError
+        If input parameters are invalid or out of range.
+    """
+    validate_as(p, (Fraction, int, float))
+    if isinstance (p, float): validate_float(p)
+    validate_is_greater_than(p, 0)
+    validate_is_less_than(p, 1)
+    validate_against(p, (0, 1))
+
+    p = Fraction(p)
+    q = Fraction(p.denominator - p.numerator, p.denominator)
+    value = p * pow(q,k_trials - 1) if includes_success else p * pow(q, k_trials)
+    mean = Fraction(p.denominator, p.numerator) if includes_success else Fraction(1-p, p)
+    variance = Fraction(q, p**2) 
+
+    return {
+        VALUE: value,
+        MEAN: mean,
+        SDEV: {
+            FRAC: f'sqrt({variance})',
+            FLOAT: float(Math.sqrt(variance))
+        }
+    }
+
