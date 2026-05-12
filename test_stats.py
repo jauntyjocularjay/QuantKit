@@ -12,18 +12,6 @@ from .stats import binom, geom, interquartile_slice, iqs, median_index
 from .boxplot import BoxPlot
 
 
-def assert_raises_expected(callable_obj, expected_exception_type, context_message):
-    actual_exception = None
-    try:
-        callable_obj()
-    except Exception as exc:
-        actual_exception = exc
-    assert isinstance(actual_exception, expected_exception_type), (
-        f'{context_message}. Expected exception type: {expected_exception_type.__name__}, '
-        f'Actual: {type(actual_exception).__name__ if actual_exception is not None else "No exception"}'
-    )
-
-
 # --- median_index tests ---
 
 @pytest.mark.parametrize(
@@ -73,26 +61,24 @@ def test_iqr_slice_non_numeric():
 
 
 # --- iqs tests ---
-def test_iqs_equivalence():
-    '''Test that iqs returns the same result as interquartile_slice for the same input.'''
-    data = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+def test_iqs_returns_expected_slice():
+    '''Test that iqs returns the expected IQR slice for tuple input.'''
+    data = (1, 2, 3, 4, 5, 6, 7, 8, 9)
     result = iqs(data)
-    expected = interquartile_slice(data)
-    assert result == expected, f'iqs should equal interquartile_slice for the same input. Expected: {expected}, Actual: {result}'
+    expected = (3, 4, 5, 6, 7)
+    assert result == expected, f'iqs should return {expected} for tuple input, got {result}'
 
 
 # --- Error class tests ---
 def test_invalid_sequence_error():
-    '''Test InvalidSequenceError can be raised and has correct message.'''
-    actual_exception = InvalidSequenceError()
-    assert isinstance(actual_exception, InvalidSequenceError), f'Expected exception type InvalidSequenceError, Actual: {type(actual_exception).__name__ if actual_exception is not None else "No exception"}'
-    assert 'expected' in str(actual_exception), f"Expected exception message to contain 'expected', Actual: {str(actual_exception)}"
+    '''Test BoxPlot raises InvalidSequenceError for a None input sequence.'''
+    with pytest.raises(InvalidSequenceError, match='expected a'):
+        BoxPlot(None) # type: ignore
 
 def test_not_numeric_sequence_error():
-    '''Test NotNumericSequenceError can be raised and has correct message.'''
-    actual_exception = NotNumericSequenceError()
-    assert isinstance(actual_exception, NotNumericSequenceError), f'Expected exception type NotNumericSequenceError, Actual: {type(actual_exception).__name__ if actual_exception is not None else "No exception"}'
-    assert 'expected a' in str(actual_exception), f"Expected exception message to contain 'expected a', Actual: {str(actual_exception)}"
+    '''Test BoxPlot raises NotNumericSequenceError for non-numeric input.'''
+    with pytest.raises(NotNumericSequenceError, match='expected a'):
+        BoxPlot([1, 'a', 3, 4])
 
 
 # --- sequence_are_numbers tests ---
@@ -117,74 +103,64 @@ def test_sequence_are_numbers_nan_inf():
 # --- Additional coverage tests ---
 def test_median_index_not_numeric():
     '''Test median_index raises NotNumericSequenceError for non-numeric input.'''
-    assert_raises_expected(
-        lambda: median_index(['a', 2, 3]),
-        NotNumericSequenceError,
-        'median_index should raise for non-numeric input',
-    )
+    with pytest.raises(NotNumericSequenceError, match='expected a'):
+        median_index(['a', 2, 3])
 
 # --- BoxPlot class tests ---
 def test_boxplot_as_dict_and_str():
-    '''Test BoxPlot.as_dict() and __str__() for correct output and keys.'''
-    # Typical case
+    '''Test BoxPlot.as_dict() and __str__() for exact output on a known dataset.'''
     data = [1, 2, 3, 4, 5, 6]
     bp = BoxPlot(data)
     d = bp.as_dict()
-    # Check all expected keys are present
-    for key in ['min', 'q1', 'median', 'q2', 'q3', 'max', 'data_list', 'iqr', 'range']:
-        assert key in d, f"BoxPlot.as_dict() should contain key '{key}'. Expected: key present, Actual keys: {list(d.keys())}"
-    # Check __str__ output contains expected values
+    expected_dict = {
+        'min': 1,
+        'q1': 1.75,
+        'median': 3.5,
+        'q2': 3.5,
+        'q3': 5.25,
+        'max': 6,
+        'tukey_fence': {'min': -3.5, 'max': 10.5},
+        'data_list': [1, 2, 3, 4, 5, 6],
+        'outliers': [],
+        'iqr': 3.5,
+        'range': 5,
+    }
+    assert d == expected_dict, f'BoxPlot.as_dict() should return {expected_dict}, got {d}'
     s = str(bp)
-    assert str(bp.min) in s, f'BoxPlot.__str__ should include min value. Expected substring: {bp.min}, Actual string: {s}'
-    assert str(bp.q1) in s, f'BoxPlot.__str__ should include q1 value. Expected substring: {bp.q1}, Actual string: {s}'
-    assert str(bp.median) in s, f'BoxPlot.__str__ should include median value. Expected substring: {bp.median}, Actual string: {s}'
-    assert str(bp.q3) in s, f'BoxPlot.__str__ should include q3 value. Expected substring: {bp.q3}, Actual string: {s}'
-    assert str(bp.max) in s, f'BoxPlot.__str__ should include max value. Expected substring: {bp.max}, Actual string: {s}'
+    expected_str = 'boxplot:    min * 1 ---- q1 [ 1.75     median | 3.5     q3 ] 5.25 ---- max * 6]'
+    assert s == expected_str, f'BoxPlot.__str__ should return {expected_str}, got {s}'
 
 def test_boxplot_properties():
-    '''Test BoxPlot properties: range, iqr, iqr_balance, whisker_balance.'''
+    '''Test BoxPlot properties against exact expected values for a fixed dataset.'''
     data = [1, 2, 3, 4, 5, 6, 7, 8]
     bp = BoxPlot(data)
-    # Test range
-    expected_range = bp.max - bp.min
-    assert bp.range == expected_range, f'BoxPlot.range should be max - min. Expected: {expected_range}, Actual: {bp.range}'
-    # Test iqr
-    expected_iqr = bp.q3 - bp.q1
-    assert bp.iqr == expected_iqr, f'BoxPlot.iqr should be q3 - q1. Expected: {expected_iqr}, Actual: {bp.iqr}'
-    # Test iqr_balance
-    left = bp.median - bp.q1
-    right = bp.q3 - bp.median
-    expected_balance = (left - right) / bp.iqr
-    actual_iqr_balance_delta = abs(bp.iqr_balance - expected_balance)
-    assert actual_iqr_balance_delta < 1e-9, f'BoxPlot.iqr_balance should match formula. Expected: {expected_balance}, Actual: {bp.iqr_balance}'
-    # Test whisker_balance
-    left_w = bp.q1 - bp.min
-    right_w = bp.max - bp.q3
-    expected_wb = (left_w - right_w) / bp.range
-    actual_whisker_balance_delta = abs(bp.whisker_balance - expected_wb)
-    assert actual_whisker_balance_delta < 1e-9, f'BoxPlot.whisker_balance should match formula. Expected: {expected_wb}, Actual: {bp.whisker_balance}'
+    assert bp.min == 1, f'BoxPlot.min should be 1, got {bp.min}'
+    assert bp.q1 == 2.25, f'BoxPlot.q1 should be 2.25, got {bp.q1}'
+    assert bp.median == 4.5, f'BoxPlot.median should be 4.5, got {bp.median}'
+    assert bp.q3 == 6.75, f'BoxPlot.q3 should be 6.75, got {bp.q3}'
+    assert bp.max == 8, f'BoxPlot.max should be 8, got {bp.max}'
+    assert bp.iqr == 4.5, f'BoxPlot.iqr should be 4.5, got {bp.iqr}'
+    assert bp.range == 7, f'BoxPlot.range should be 7, got {bp.range}'
+    assert bp.iqr_balance == 0.0, f'BoxPlot.iqr_balance should be 0.0, got {bp.iqr_balance}'
+    assert bp.whisker_balance == 0.0, f'BoxPlot.whisker_balance should be 0.0, got {bp.whisker_balance}'
 
 def test_boxplot_not_numeric():
     '''Test BoxPlot raises NotNumericSequenceError for non-numeric sequence.'''
-    assert_raises_expected(
-        lambda: BoxPlot([1, 'a', 3, 4]),
-        NotNumericSequenceError,
-        'BoxPlot should raise for non-numeric sequence',
-    )
+    with pytest.raises(NotNumericSequenceError, match='expected a'):
+        BoxPlot([1, 'a', 3, 4])
 
 def test_boxplot_too_short():
     '''Test BoxPlot raises ValueError for sequence shorter than 4 elements.'''
-    assert_raises_expected(
-        lambda: BoxPlot([1, 2, 3]),
-        ValueError,
-        'BoxPlot should raise for sequence shorter than 4',
-    )
+    with pytest.raises(ValueError, match='at least length 4'):
+        BoxPlot([1, 2, 3])
 
 def test_boxplot_inclusive_method():
-    '''Test BoxPlot with inclusive quantile method.'''
+    '''Test BoxPlot with inclusive quantile method returns inclusive quartiles.'''
     data = [1, 2, 3, 4, 5, 6, 7, 8]
     bp = BoxPlot(data, quantile_method='inclusive')
-    assert isinstance(bp, BoxPlot), f'BoxPlot should be created with inclusive method. Expected type: BoxPlot, Actual: {type(bp).__name__}'
+    assert bp.q1 == 2.75, f'BoxPlot.q1 should be 2.75 for inclusive quartiles, got {bp.q1}'
+    assert bp.q3 == 6.25, f'BoxPlot.q3 should be 6.25 for inclusive quartiles, got {bp.q3}'
+    assert bp.median == 4.5, f'BoxPlot.median should remain 4.5, got {bp.median}'
 
 
 
@@ -204,24 +180,20 @@ def test_binom_typical(p, n, k, expected_value):
 
 def test_binom_invalid_probability():
     '''Test binom raises error for invalid probability.'''
-    assert_raises_expected(
-        lambda: binom(1.5, 2, 1),
-        ValueBelowBoundsError,
-        'binom should raise for p > 1',
-    )
-    assert_raises_expected(
-        lambda: binom(-0.1, 2, 1),
-        ValueAboveBoundsError,
-        'binom should raise for p < 0',
-    )
+    with pytest.raises(ValueBelowBoundsError, match='less than 1'):
+        binom(1.5, 2, 1)
+    with pytest.raises(ValueAboveBoundsError, match='greater than 0'):
+        binom(-0.1, 2, 1)
 
 def test_binom_invalid_trials():
-    '''Test binom raises error for invalid n_trials.'''
-    assert_raises_expected(
-        lambda: binom(0.5, 0, 0),
-        ProhibitedValueError,
-        'binom should raise for invalid n_trials',
-    )
+    '''Test binom raises an error when n_trials is below k_success.'''
+    with pytest.raises(ValueAboveBoundsError, match='greater than 2'):
+        binom(0.5, 1, 2)
+
+def test_binom_zero_trials_prohibited():
+    '''Test binom raises ProhibitedValueError when n_trials is zero.'''
+    with pytest.raises(ProhibitedValueError, match='expected 0 not to be any of'):
+        binom(0.5, 0, 0)
 
 # --- geom tests ---
 @pytest.mark.parametrize('p, k, expected_value', [
@@ -238,28 +210,16 @@ def test_geom_typical(p, k, expected_value):
 
 def test_geom_invalid_probability():
     '''Test geom raises error for invalid probability.'''
-    assert_raises_expected(
-        lambda: geom(1.5, 2),
-        ValueBelowBoundsError,
-        'geom should raise for p > 1',
-    )
-    assert_raises_expected(
-        lambda: geom(-0.1, 2),
-        ValueAboveBoundsError,
-        'geom should raise for p < 0',
-    )
+    with pytest.raises(ValueBelowBoundsError, match='less than 1'):
+        geom(1.5, 2)
+    with pytest.raises(ValueAboveBoundsError, match='greater than 0'):
+        geom(-0.1, 2)
 
 def test_geom_zero_or_one_probability():
     '''Test geom raises error for p=0 or p=1.'''
-    assert_raises_expected(
-        lambda: geom(0, 2),
-        ProhibitedValueError,
-        'geom should raise for p=0',
-    )
-    assert_raises_expected(
-        lambda: geom(1, 2),
-        ProhibitedValueError,
-        'geom should raise for p=1',
-    )
+    with pytest.raises(ProhibitedValueError, match='expected 0 not to be any of'):
+        geom(0, 2)
+    with pytest.raises(ProhibitedValueError, match='expected 1 not to be any of'):
+        geom(1, 2)
         
         

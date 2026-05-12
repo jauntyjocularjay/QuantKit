@@ -5,7 +5,7 @@ import math as Math
 from collections.abc import Sequence
 from typing import Literal, Union
 from fractions import Fraction
-from .constants import VALUE, COEF, FLOAT, MEAN, SDEV, FRAC
+from .constants import VALUE, COEF, FLOAT, MEAN, STD_DEV, FRAC
 from .pytilities.validation import *
 from .pytilities.returns import *
 
@@ -140,7 +140,7 @@ def binom(p: Union[Fraction, int, float], n_trials: int = 1, k_success: int = 1)
         VALUE: coefficient * product_of_success * product_of_failure,
         COEF: coefficient,
         MEAN: n_trials * p,
-        SDEV: {
+        STD_DEV: {
             FRAC: f'sqrt({n_trials * p * q})',
             FLOAT: Math.sqrt(n_trials * p * q)
         }
@@ -192,7 +192,7 @@ def geom(p: Union[Fraction, int, float], k_trials: int = 1, includes_success: bo
     return {
         VALUE: value,
         MEAN: mean,
-        SDEV: {
+        STD_DEV: {
             FRAC: f'sqrt({variance})',
             FLOAT: float(Math.sqrt(variance))
         }
