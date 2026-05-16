@@ -1,36 +1,12 @@
 # For package usage
-try: 
-    from . import console 
-# For direct script usage
-except ImportError:
-    from . import console as console
 import statistics as Statistics
-from dataclasses import dataclass, field
+import math as Math
 from collections.abc import Sequence
 from typing import Literal, Union
-from pprint import pprint
-from .validation import sequence_are_numbers, InvalidSequenceError, NotNumericSequenceError
-from .returns import original_sequence_type
-
-# To import use from the same folder:
-# import stats 
-#
-# To import use from the parent folder:
-# from PyTils import stats 
-
-console.clear()
-
-DATA_LIST = 'data_list'
-SEQUENCE_MINIMUM = 'min'
-SEQUENCE_MAXIMUM = 'max'
-SEQUENCE_MEDIAN = 'median'
-SEQUENCE_RANGE = 'range'
-OUTLIERS = 'outliers'
-Q1 = 'q1'
-Q2 = 'q2'
-Q3 = 'q3'
-IQR = 'iqr'
-TUKEY_FENCE = 'tukey_fence'
+from fractions import Fraction
+from .constants import VALUE, COEF, FLOAT, MEAN, STD_DEV, FRAC
+from .pytilities.validation import *
+from .pytilities.returns import *
 
 def median_index(data_list: Sequence):
     ''' Returns the index or indices of the median value(s) in a sorted version of the input list.
@@ -39,10 +15,10 @@ def median_index(data_list: Sequence):
     - For an even-length list, returns a tuple containing the indices of the two middle values.
 
     Parameters:
-        data_list (list, optional): The input list of values. Defaults to None.
+        data_list (Sequence): The input sequence of numeric values.
 
     Returns:
-        tuple: Indices of the median value(s) in the sorted list. Returns an empty tuple if the input 
+        tuple: Indices of the median value(s) in the sorted list. Returns an empty tuple if the input
           is None or empty.
 
     Examples:
@@ -80,14 +56,14 @@ def interquartile_slice(data_list: Sequence):
     within the IQR range. 
 
     Parameters:
-        data_list (Sequence): The input list of numeric values. Defaults to None.
+        data_list (Sequence): The input sequence of numeric values.
 
     Returns:
         list, set, or tuple: A slice of the sorted data representing the interquartile range,
         or None if the input is None or empty.
 
     Example:
-        iqr_slice([1, 2, 3, 4, 5, 6, 7, 8, 9])  # returns [3, 4, 5, 6, 7]
+        interquartile_slice([1, 2, 3, 4, 5, 6, 7, 8, 9])  # returns [3, 4, 5, 6, 7]
     '''
 
     if data_list is None:
@@ -111,142 +87,113 @@ def interquartile_slice(data_list: Sequence):
     return original_sequence_type(input_type, result)
 
 def iqs(data_list: Sequence):
+    """Alias for `interquartile_slice`. Returns the data points within the IQR of the input list."""
     return interquartile_slice(data_list)
 
+def binom(p: Union[Fraction, int, float], n_trials: int = 1, k_success: int = 1):
+    """Calculate binomial distribution statistics for a given probability of success.
 
-# Classes
-@dataclass(frozen=True)
-class BoxPlot:
-    q1: Union[float, int]
-    median: Union[float, int]
-    q3: Union[float, int]
-    data_list: Sequence
-    
-    '''Represents a box plot summary for a numeric sequence (min, Q1, median, Q3, max).
+    Computes the probability, binomial coefficient, mean, and standard deviation for
+    the binomial distribution with probability of success `p`, `n_trials` total trials,
+    and `k_success` desired successes.
 
-    This class computes and stores the five-number summary required for a box plot:
-        1. minimum, 
-          2. first quartile (Q1)
-        3. median (Q2)
-        4. third quartile (Q3)
-        5. maximum.
-        6. ordered data list
-        7. iqr
-        8. range
-     - Quartiles are calculated using the specified method ('exclusive' or 'inclusive').
-     - If a tuple or set is passed as the sequence it will be automatically converted to an ordered 
-      list.
-    - In the case of sets, the original order will be lost. 
+    Parameters
+    ----------
+    p : Fraction | int | float
+        Probability of success on a single trial (0 < p < 1).
+    n_trials : int, optional
+        Total number of trials. Must be greater than `k_success`. Defaults to 1.
+    k_success : int, optional
+        Number of desired successes. Defaults to 1.
 
-    Parameters:
-        data_list (Sequence): A sequence of numeric values (length >= 4).
-        quantile_method (Literal['exclusive', 'inclusive']): Method for quartile calculation.
-            Defaults to 'exclusive'.
+    Returns
+    -------
+    dict
+        Dictionary with keys VALUE, COEF, MEAN, and SDEV:
+        - VALUE: Probability of exactly k_success successes in n_trials trials.
+        - COEF: Binomial coefficient C(n_trials, k_success).
+        - MEAN: Expected number of successes (n * p).
+        - SDEV: Standard deviation as both a symbolic string and a float.
 
-    Attributes:
-        min (float): Minimum value in the data.
-        q1 (float): First quartile (25th percentile).
-        median (float): Median value (50th percentile).
-        q3 (float): Third quartile (75th percentile).
-        max (float): Maximum value in the data.
-        data_list (list): Sorted list of the input data.
+    Raises
+    ------
+    TypeError, ValueError
+        If input parameters are invalid or out of range.
+    """
+    validate_as(p, (Fraction, int, float))
+    if isinstance (p, float): validate_float(p)
+    validate_is_greater_than(p, 0)
+    validate_is_less_than(p,1)
+    validate_is_greater_than(n_trials, k_success)
+    validate_against(n_trials, (0,))
+    validate_against(p, (0, 1))
 
-    Example:
-        bp = BoxPlot([1, 2, 3, 4, 5, 6])
-        print(bp.as_dict())
-        # {min: 1, q1: 2.25, 'median': 3.5, q2: 3.5, q3: 4.75, max: 6}
+    p = Fraction(p)
+    q = Fraction(p.denominator - p.numerator, p.denominator)
+    coefficient = Fraction(Math.factorial(n_trials), Math.factorial(k_success) * Math.factorial(n_trials - k_success))
 
-    Notes:
-        The __str__ method provides a compact, human-readable summary of the box plot:
-            boxplot:    min * {min} ---- q1 [ {q1}     median | {median}     q3 ] {q3} ---- max * {max}]
-        This is useful for quick inspection of the five-number summary in logs or printouts.
-        For a traditional logging instead, use BoxPlot.as_dict() when you print the result.
-    '''
-    def __init__(self, data_list: Sequence, quantile_method: Literal['exclusive', 'inclusive'] = 'exclusive'):
-        if data_list is None or not isinstance(data_list, Sequence):
-            raise InvalidSequenceError
-        if not sequence_are_numbers(data_list):
-            raise NotNumericSequenceError
-        if len(data_list) < 4:
-            raise ValueError('argument must have at least length 4')
+    product_of_success = p ** k_success
+    product_of_failure = q ** (n_trials - k_success)
 
-        data_list = sorted(data_list)
-        quartiles = Statistics.quantiles(data_list, n=4, method = quantile_method)
-
-        object.__setattr__(self, Q1, quartiles[0])
-        object.__setattr__(self, SEQUENCE_MEDIAN, Statistics.median(data_list)) # aka q2
-        object.__setattr__(self, Q3, quartiles[2])
-        object.__setattr__(self, DATA_LIST, data_list)
-
-    @property
-    def min(self):
-        ''' returns the first value within the Tukey Fence or the first value in a given sequence.
-
-        Returns:
-            num: either the first value within the Tukey Fence or the first value in the sequence.
-        '''
-        return next((x for x in self.data_list if x >= self.tukey_fence[SEQUENCE_MINIMUM]), self.data_list[0])
-
-    @property
-    def max(self):
-        ''' returns the last value within the Tukey Fence or the last value in a given sequence.
-
-        Returns:
-            num: either the last value within the Tukey Fence or the last value in the sequence.
-        '''
-        return next((x for x in reversed(self.data_list) if x <= self.tukey_fence[SEQUENCE_MAXIMUM]), self.data_list[-1])
-
-    @property
-    def tukey_fence(self):
-        return {
-            SEQUENCE_MINIMUM: self.q1 - self.iqr * 1.5,
-            SEQUENCE_MAXIMUM: self.q3 + self.iqr * 1.5
+    return {
+        VALUE: coefficient * product_of_success * product_of_failure,
+        COEF: coefficient,
+        MEAN: n_trials * p,
+        STD_DEV: {
+            FRAC: f'sqrt({n_trials * p * q})',
+            FLOAT: Math.sqrt(n_trials * p * q)
         }
+    }
 
-    @property
-    def range(self):
-        return self.max - self.min
+def geom(p: Union[Fraction, int, float], k_trials: int = 1, includes_success: bool = True):
+    """ Calculate geometric distribution statistics for a given probability of success.
 
-    @property
-    def outliers(self):
-        return [x for x in self.data_list if x < self.tukey_fence[SEQUENCE_MINIMUM] or x > self.tukey_fence[SEQUENCE_MAXIMUM]]
+    Computes the probability, mean, and standard deviation for the geometric distribution
+    with probability of success `p` and number of trials `k_trials`. The function supports
+    both definitions: counting the trial on which the first success occurs (`includes_success=True`)
+    or the number of failures before the first success (`includes_success=False`).
 
-    @property
-    def iqr(self):
-        return self.q3 - self.q1
+    Parameters
+    ----------
+    p : Fraction | int | float
+        Probability of success on a single trial (0 < p < 1).
+    k_trials : int, optional
+        The trial number (if includes_success=True) or number of failures (if includes_success=False).
+        Defaults to 1 (first trial).
+    includes_success : bool, optional
+        If True, k_trials counts the trial of first success (default). If False, counts failures before success.
 
-    @property
-    def iqr_balance(self):
-        left = self.median - self.q1
-        right = self.q3 - self.median
-        return (left - right) / self.iqr
+    Returns
+    -------
+    dict
+        Dictionary with keys VALUE, MEAN, and SDEV:
+        - VALUE: Probability of first success at k_trials as a Fraction.
+        - MEAN: Expected value as a Fraction.
+        - SDEV: Standard deviation as both a symbolic string (FRAC) and a float (FLOAT).
 
-    @property
-    def whisker_balance(self):
-        left = self.q1 - self.min
-        right = self.max - self.q3
-        return (left - right) / self.range
+    Raises
+    ------
+    TypeError, ValueError
+        If input parameters are invalid or out of range.
+    """
+    validate_as(p, (Fraction, int, float))
+    if isinstance (p, float): validate_float(p)
+    validate_is_greater_than(p, 0)
+    validate_is_less_than(p, 1)
+    validate_against(p, (0, 1))
 
-    def as_dict(self):
-        return {
-            SEQUENCE_MINIMUM: self.min,
-            Q1: self.q1,
-            SEQUENCE_MEDIAN: self.median,
-            Q2: self.median,
-            Q3: self.q3,
-            SEQUENCE_MAXIMUM: self.max,
-            TUKEY_FENCE: {
-                SEQUENCE_MINIMUM: self.tukey_fence[SEQUENCE_MINIMUM], 
-                SEQUENCE_MAXIMUM: self.tukey_fence[SEQUENCE_MAXIMUM]
-            },
-            DATA_LIST: self.data_list,
-            OUTLIERS: self.outliers,
-            IQR: self.iqr,
-            SEQUENCE_RANGE: self.range
+    p = Fraction(p)
+    q = Fraction(p.denominator - p.numerator, p.denominator)
+    value = p * pow(q,k_trials - 1) if includes_success else p * pow(q, k_trials)
+    mean = Fraction(p.denominator, p.numerator) if includes_success else Fraction(1-p, p)
+    variance = Fraction(q, p**2) 
+
+    return {
+        VALUE: value,
+        MEAN: mean,
+        STD_DEV: {
+            FRAC: f'sqrt({variance})',
+            FLOAT: float(Math.sqrt(variance))
         }
+    }
 
-    def __str__(self):
-        return f'boxplot:    min * {self.min} ---- q1 [ {self.q1}     median | {self.median}     q3 ] {self.q3} ---- max * {self.max}]'
-
-bp = BoxPlot([-1024, -512-64,-512, -512-128,136, 140, 178, 190, 205, 215, 217, 218, 232, 234, 240, 255, 270, 275, 290, 301, 303, 315, 317, 318, 326, 333, 343, 349, 360, 369, 377, 388, 391, 392, 398, 400, 402, 405, 408, 422, 429, 450, 475, 512, 1024])
-pprint(bp.as_dict())
