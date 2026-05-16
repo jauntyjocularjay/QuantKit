@@ -1,82 +1,88 @@
-# PyTils
+# QuantKit
 
 A collection of python utilities I created because why in Hades are these not already implemented in the standard library?
+
+## Table of Contents
+
+- [LLM Disclosure](#llm-disclosure)
+- [`stats.py`](#statspy)
+  - [`median_index`](#median_index)
+  - [`interquartile_slice`](#interquartile_slice)
+  - [`iqs`](#iqs)
+  - [`binom`](#binom)
+  - [`geom`](#geom)
+  - [Constants](#constants)
+- [Test Runner](#test-runner)
+  - [Bash](#bash)
+  - [PowerShell](#powershell)
 
 ## LLM Disclosure
 
 All working base code is written by an actual human, [@jauntyjocularjay](https://github.com/jauntyjocularjay). LLM @Copilot is used to author documentation, docstrings, and unit tests with editing and fine tuning by @jauntyjocularjay.
 
-## `console.py`
-
-### `console.clear()`
-
-`console.clear()` clears the python console. Why would I want to see old data? If I want to compare data, I will print it to the console.
-
 ## `stats.py`
 
-`stats.py` is a custom statistics library with robust, readable, and DRY utilities for exploratory data analysis and box plot statistics. All dictionary keys are defined as constants to avoid string literals and reduce errors.
+`stats.py` is a custom statistics library with utilities for exploratory data analysis and probability distributions. All dictionary keys are defined as constants in `constants.py` to avoid string literals and reduce errors.
 
 ### `median_index`
 
-Finds the median value(s) in a list and returns a tuple of indices. Odd-length lists return a single index; even-length lists return two indices.
+Finds the median value(s) in a sorted sequence and returns a tuple of indices. Odd-length sequences return a single index; even-length sequences return two indices.
+
+```python
+median_index([1, 2, 3, 4, 5, 6, 7])  # returns (3,)
+median_index([1, 2, 3, 4, 5, 6])     # returns (2, 3)
+```
 
 ### `interquartile_slice`
 
-Returns the data points within the interquartile range (IQR) of the input list using index-based slicing (not interpolation). This is the actual data in the "middle 50%" of the sorted list.
-
-**Example:**
+Returns the data points within the interquartile range (IQR) of the input sequence using index-based slicing (not interpolation). This is the actual data in the "middle 50%" of the sorted sequence. Preserves the original input type (list, set, or tuple).
 
 ```python
 interquartile_slice([1, 2, 3, 4, 5, 6, 7, 8, 9])  # returns [3, 4, 5, 6, 7]
 ```
 
-### `BoxPlot`
+### `iqs`
 
-`BoxPlot` computes a robust five-number summary and Tukey outlier fences for a numeric sequence. It uses key constants for all dictionary outputs and properties. Whiskers (min/max) are the most extreme values within the Tukey fences, or the sequence extremes if all values are outliers.
+Alias for `interquartile_slice`.
 
-**Example:**
+### `binom`
+
+Computes binomial distribution statistics: probability, binomial coefficient, mean, and standard deviation.
+
 ```python
-from PyTils.stats import BoxPlot
-bp = BoxPlot([1, 2, 3, 4, 5, 6])
-print(bp.as_dict())
-# { 'min': 1, 'q1': 2.25, 'median': 3.5, 'q2': 3.5, 'q3': 4.75, 'max': 6, ... }
+from quantkit.stats import binom
+result = binom(p=Fraction(1, 2), n_trials=10, k_success=3)
+result[VALUE]       # probability as a Fraction
+result[COEF]        # binomial coefficient C(n, k)
+result[MEAN]        # expected successes
+result[SDEV][FRAC]  # standard deviation as a symbolic string
+result[SDEV][FLOAT] # standard deviation as a float
 ```
 
+### `geom`
 
-### `BoxPlot.__str__()`
+Computes geometric distribution statistics: probability of first success at trial `k`, mean, and standard deviation. Supports both definitions — counting the trial of first success (`includes_success=True`, default) or counting failures before first success (`includes_success=False`).
 
-The `__str__` method of `BoxPlot` provides a compact, human-readable summary of the five-number summary and whiskers:
-
-```
-boxplot:    min * {min} ---- q1 [ {q1}     median | {median}     q3 ] {q3} ---- max * {max}]
-```
-
-This format is useful for quick inspection in logs or printouts, showing the minimum, first quartile (q1), median, third quartile (q3), and maximum values. For a more detailed or traditional output, use `BoxPlot.as_dict()`.
-
-**Example:**
 ```python
-from PyTils.stats import BoxPlot
-bp = BoxPlot([1, 2, 3, 4, 5, 6])
-print(str(bp))
-# boxplot:    min * 1 ---- q1 [ 2.25     median | 3.5     q3 ] 4.75 ---- max * 6]
+from quantkit.stats import geom
+result = geom(p=Fraction(1, 6), k_trials=3)
+result[VALUE]       # probability as a Fraction
+result[MEAN]        # expected trials as a Fraction
+result[SDEV][FRAC]  # standard deviation as a symbolic string
+result[SDEV][FLOAT] # standard deviation as a float
 ```
 
 ---
 
-All dictionary keys are defined as constants in `stats.py` and listed below. Use these for all key access to avoid typos and string duplication. These are exportable into your projects.
+All dictionary keys are defined as constants in `constants.py`. Use these for all key access to avoid typos and string duplication. These are exportable into your projects.
 
 ```python
-DATA_LIST = 'data_list'
-SEQUENCE_MINIMUM = 'min'
-SEQUENCE_MAXIMUM = 'max'
-SEQUENCE_MEDIAN = 'median'
-SEQUENCE_RANGE = 'range'
-OUTLIERS = 'outliers'
-Q1 = 'q1'
-Q2 = 'q2'
-Q3 = 'q3'
-IQR = 'iqr'
-TUKEY_FENCE = 'tukey_fence'
+VALUE = 'value'
+COEF  = 'coefficient'
+MEAN  = 'mean'
+SDEV  = 'std_dev'
+FRAC  = 'fraction'
+FLOAT = 'float'
 ```
 
 ---
@@ -86,27 +92,27 @@ TUKEY_FENCE = 'tukey_fence'
 ### Bash
 
 ```bash
-# !!!IMPORTANT!!! run the test scripts from the project root (the parent of PyTils)
+# Run from the project root (the parent of quantkit)
 $ cd path/to/module/parent
 
 # Run a specific test file
-$ poetry run pytest -v PyTils/tests/test_stats.py
+$ poetry run pytest -v quantkit/test_stats.py
 
 # Run tests with coverage report
-$ poetry run pytest --cov=PyTils --cov-report=term -v PyTils/tests/test_stats.py
+$ poetry run pytest --cov=quantkit --cov-report=term -v quantkit/test_stats.py
 ```
 
 ### PowerShell
 
 ```powershell
-# PowerShell: run from the project root (the parent of PyTils)
+# Run from the project root (the parent of quantkit)
 cd path\to\module\parent
 
 # Run a specific test file
-poetry run pytest -v PyTils/tests/test_stats.py
+poetry run pytest -v quantkit/test_stats.py
 
 # Run tests with coverage report
-poetry run pytest --cov=PyTils --cov-report=term -v PyTils/tests/test_stats.py
+poetry run pytest --cov=quantkit --cov-report=term -v quantkit/test_stats.py
 ```
 
-All tests are DRY, readable, and use the latest API and key constants. See `tests/test_stats.py` for examples.
+All tests are DRY, readable, and use the latest API and key constants. See `test_stats.py` for examples.

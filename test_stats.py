@@ -1,17 +1,18 @@
-import sys
-import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
-from .validation import sequence_are_numbers, InvalidSequenceError, NotNumericSequenceError
-from .stats import median_index, interquartile_slice, iqs, BoxPlot
-from .console import clear
 import pytest
-from typing import Literal
+from .constants import VALUE
+from .pytilities.validation import (
+    InvalidSequenceError,
+    NotNumericSequenceError,
+    ProhibitedValueError,
+    ValueAboveBoundsError,
+    ValueBelowBoundsError,
+    sequence_are_numbers,
+)
+from .stats import binom, geom, interquartile_slice, iqs, median_index
+from .boxplot import BoxPlot
 
-
-clear()
 
 # --- median_index tests ---
-import math
 
 @pytest.mark.parametrize(
     'input_list,expected,desc',
@@ -60,109 +61,165 @@ def test_iqr_slice_non_numeric():
 
 
 # --- iqs tests ---
-def test_iqs_equivalence():
-    '''Test that iqs returns the same result as interquartile_slice for the same input.'''
-    data = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+def test_iqs_returns_expected_slice():
+    '''Test that iqs returns the expected IQR slice for tuple input.'''
+    data = (1, 2, 3, 4, 5, 6, 7, 8, 9)
     result = iqs(data)
-    expected = interquartile_slice(data)
-    assert result == expected, 'iqs should return the same result as interquartile_slice for the same input'
+    expected = (3, 4, 5, 6, 7)
+    assert result == expected, f'iqs should return {expected} for tuple input, got {result}'
 
 
 # --- Error class tests ---
 def test_invalid_sequence_error():
-    '''Test InvalidSequenceError can be raised and has correct message.'''
-    with pytest.raises(InvalidSequenceError, match='expected'):
-        raise InvalidSequenceError()
+    '''Test BoxPlot raises InvalidSequenceError for a None input sequence.'''
+    with pytest.raises(InvalidSequenceError, match='expected a'):
+        BoxPlot(None) # type: ignore
 
 def test_not_numeric_sequence_error():
-    '''Test NotNumericSequenceError can be raised and has correct message.'''
-    with pytest.raises(NotNumericSequenceError, match='real numbers'):
-        raise NotNumericSequenceError()
+    '''Test BoxPlot raises NotNumericSequenceError for non-numeric input.'''
+    with pytest.raises(NotNumericSequenceError, match='expected a'):
+        BoxPlot([1, 'a', 3, 4])
 
 
 # --- sequence_are_numbers tests ---
 def test_sequence_are_numbers_all_numeric():
     '''Test sequence_are_numbers returns True for all-numeric sequence.'''
-    assert sequence_are_numbers([1, 2.5, 3]), 'sequence_are_numbers should return True for all numeric sequence'
+    actual = sequence_are_numbers([1, 2.5, 3])
+    assert actual is True, f'sequence_are_numbers should return True for all numeric sequence. Expected: True, Actual: {actual}'
 
 def test_sequence_are_numbers_non_numeric():
     '''Test sequence_are_numbers returns False if any element is not numeric.'''
-    assert not sequence_are_numbers([1, 'a', 3]), 'sequence_are_numbers should return False if any element is not numeric'
+    actual = sequence_are_numbers([1, 'a', 3])
+    assert actual is False, f'sequence_are_numbers should return False if any element is not numeric. Expected: False, Actual: {actual}'
 
 def test_sequence_are_numbers_nan_inf():
     '''Test sequence_are_numbers returns False if any element is NaN or infinite.'''
-    assert not sequence_are_numbers([1, float('nan'), 3]), 'sequence_are_numbers should return False if any element is NaN'
-    assert not sequence_are_numbers([1, float('inf'), 3]), 'sequence_are_numbers should return False if any element is infinite'
+    actual_nan = sequence_are_numbers([1, float('nan'), 3])
+    assert actual_nan is False, f'sequence_are_numbers should return False if any element is NaN. Expected: False, Actual: {actual_nan}'
+    actual_inf = sequence_are_numbers([1, float('inf'), 3])
+    assert actual_inf is False, f'sequence_are_numbers should return False if any element is infinite. Expected: False, Actual: {actual_inf}'
 
 
 # --- Additional coverage tests ---
 def test_median_index_not_numeric():
     '''Test median_index raises NotNumericSequenceError for non-numeric input.'''
-    with pytest.raises(NotNumericSequenceError):
+    with pytest.raises(NotNumericSequenceError, match='expected a'):
         median_index(['a', 2, 3])
-
-def test_sequence_are_numbers_none():
-    '''Test sequence_are_numbers raises InvalidSequenceError for None input.'''
-    with pytest.raises(InvalidSequenceError):
-        sequence_are_numbers(None)
-
 
 # --- BoxPlot class tests ---
 def test_boxplot_as_dict_and_str():
-    '''Test BoxPlot.as_dict() and __str__() for correct output and keys.'''
-    # Typical case
+    '''Test BoxPlot.as_dict() and __str__() for exact output on a known dataset.'''
     data = [1, 2, 3, 4, 5, 6]
     bp = BoxPlot(data)
     d = bp.as_dict()
-    # Check all expected keys are present
-    for key in ['min', 'q1', 'median', 'q2', 'q3', 'max', 'data_list', 'iqr', 'range']:
-        assert key in d, f'BoxPlot.as_dict() should contain key \'{key}\''
-    # Check __str__ output contains expected values
+    expected_dict = {
+        'min': 1,
+        'q1': 1.75,
+        'median': 3.5,
+        'q2': 3.5,
+        'q3': 5.25,
+        'max': 6,
+        'tukey_fence': {'min': -3.5, 'max': 10.5},
+        'data_list': [1, 2, 3, 4, 5, 6],
+        'outliers': [],
+        'iqr': 3.5,
+        'range': 5,
+    }
+    assert d == expected_dict, f'BoxPlot.as_dict() should return {expected_dict}, got {d}'
     s = str(bp)
-    assert str(bp.min) in s, 'BoxPlot.__str__ should include min value'
-    assert str(bp.q1) in s, 'BoxPlot.__str__ should include q1 value'
-    assert str(bp.median) in s, 'BoxPlot.__str__ should include median value'
-    assert str(bp.q3) in s, 'BoxPlot.__str__ should include q3 value'
-    assert str(bp.max) in s, 'BoxPlot.__str__ should include max value'
+    expected_str = 'boxplot:    min * 1 ---- q1 [ 1.75     median | 3.5     q3 ] 5.25 ---- max * 6]'
+    assert s == expected_str, f'BoxPlot.__str__ should return {expected_str}, got {s}'
 
 def test_boxplot_properties():
-    '''Test BoxPlot properties: range, iqr, iqr_balance, whisker_balance.'''
+    '''Test BoxPlot properties against exact expected values for a fixed dataset.'''
     data = [1, 2, 3, 4, 5, 6, 7, 8]
     bp = BoxPlot(data)
-    # Test range
-    assert bp.range == bp.max - bp.min, 'BoxPlot.range should be max - min'
-    # Test iqr
-    assert bp.iqr == bp.q3 - bp.q1, 'BoxPlot.iqr should be q3 - q1'
-    # Test iqr_balance
-    left = bp.median - bp.q1
-    right = bp.q3 - bp.median
-    expected_balance = (left - right) / bp.iqr
-    assert abs(bp.iqr_balance - expected_balance) < 1e-9, 'BoxPlot.iqr_balance should match formula'
-    # Test whisker_balance
-    left_w = bp.q1 - bp.min
-    right_w = bp.max - bp.q3
-    expected_wb = (left_w - right_w) / bp.range
-    assert abs(bp.whisker_balance - expected_wb) < 1e-9, 'BoxPlot.whisker_balance should match formula'
-
-def test_boxplot_invalid_sequence():
-    '''Test BoxPlot raises InvalidSequenceError for non-sequence input.'''
-    with pytest.raises(InvalidSequenceError):
-        BoxPlot(None)
+    assert bp.min == 1, f'BoxPlot.min should be 1, got {bp.min}'
+    assert bp.q1 == 2.25, f'BoxPlot.q1 should be 2.25, got {bp.q1}'
+    assert bp.median == 4.5, f'BoxPlot.median should be 4.5, got {bp.median}'
+    assert bp.q3 == 6.75, f'BoxPlot.q3 should be 6.75, got {bp.q3}'
+    assert bp.max == 8, f'BoxPlot.max should be 8, got {bp.max}'
+    assert bp.iqr == 4.5, f'BoxPlot.iqr should be 4.5, got {bp.iqr}'
+    assert bp.range == 7, f'BoxPlot.range should be 7, got {bp.range}'
+    assert bp.iqr_balance == 0.0, f'BoxPlot.iqr_balance should be 0.0, got {bp.iqr_balance}'
+    assert bp.whisker_balance == 0.0, f'BoxPlot.whisker_balance should be 0.0, got {bp.whisker_balance}'
 
 def test_boxplot_not_numeric():
     '''Test BoxPlot raises NotNumericSequenceError for non-numeric sequence.'''
-    with pytest.raises(NotNumericSequenceError):
+    with pytest.raises(NotNumericSequenceError, match='expected a'):
         BoxPlot([1, 'a', 3, 4])
 
 def test_boxplot_too_short():
     '''Test BoxPlot raises ValueError for sequence shorter than 4 elements.'''
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match='at least length 4'):
         BoxPlot([1, 2, 3])
 
 def test_boxplot_inclusive_method():
-    '''Test BoxPlot with inclusive quantile method.'''
+    '''Test BoxPlot with inclusive quantile method returns inclusive quartiles.'''
     data = [1, 2, 3, 4, 5, 6, 7, 8]
     bp = BoxPlot(data, quantile_method='inclusive')
-    assert isinstance(bp, BoxPlot), 'BoxPlot should be created with inclusive method'
+    assert bp.q1 == 2.75, f'BoxPlot.q1 should be 2.75 for inclusive quartiles, got {bp.q1}'
+    assert bp.q3 == 6.25, f'BoxPlot.q3 should be 6.25 for inclusive quartiles, got {bp.q3}'
+    assert bp.median == 4.5, f'BoxPlot.median should remain 4.5, got {bp.median}'
 
 
+
+
+# --- binom tests ---
+@pytest.mark.parametrize('p, n, k, expected_value', [
+    (0.5, 1, 1, 0.5),
+    (0.5, 2, 1, 0.5),
+    (0.2, 5, 1, 0.4096),
+    (0.7, 3, 2, 0.441),
+])
+def test_binom_typical(p, n, k, expected_value):
+    '''Test binom returns correct probability for typical cases.'''
+    result = binom(p, n, k)
+    actual = float(result[VALUE])
+    assert abs(actual - expected_value) < 1e-6, f'binom({p}, {n}, {k}) should return probability {expected_value}, got {actual}'
+
+def test_binom_invalid_probability():
+    '''Test binom raises error for invalid probability.'''
+    with pytest.raises(ValueBelowBoundsError, match='less than 1'):
+        binom(1.5, 2, 1)
+    with pytest.raises(ValueAboveBoundsError, match='greater than 0'):
+        binom(-0.1, 2, 1)
+
+def test_binom_invalid_trials():
+    '''Test binom raises an error when n_trials is below k_success.'''
+    with pytest.raises(ValueAboveBoundsError, match='greater than 2'):
+        binom(0.5, 1, 2)
+
+def test_binom_zero_trials_prohibited():
+    '''Test binom raises ProhibitedValueError when n_trials is zero.'''
+    with pytest.raises(ProhibitedValueError, match='expected 0 not to be any of'):
+        binom(0.5, 0, 0)
+
+# --- geom tests ---
+@pytest.mark.parametrize('p, k, expected_value', [
+    (0.5, 1, 0.5),
+    (0.5, 2, 0.25),
+    (0.2, 3, 0.128),
+    (0.7, 1, 0.7),
+])
+def test_geom_typical(p, k, expected_value):
+    '''Test geom returns correct probability for typical cases (includes_success=True).'''
+    result = geom(p, k, includes_success=True)
+    actual = float(result[VALUE])
+    assert abs(actual - expected_value) < 1e-6, f'geom({p}, {k}) should return probability {expected_value}, got {actual}'
+
+def test_geom_invalid_probability():
+    '''Test geom raises error for invalid probability.'''
+    with pytest.raises(ValueBelowBoundsError, match='less than 1'):
+        geom(1.5, 2)
+    with pytest.raises(ValueAboveBoundsError, match='greater than 0'):
+        geom(-0.1, 2)
+
+def test_geom_zero_or_one_probability():
+    '''Test geom raises error for p=0 or p=1.'''
+    with pytest.raises(ProhibitedValueError, match='expected 0 not to be any of'):
+        geom(0, 2)
+    with pytest.raises(ProhibitedValueError, match='expected 1 not to be any of'):
+        geom(1, 2)
+        
+        
