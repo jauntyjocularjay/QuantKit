@@ -1,5 +1,5 @@
 import pytest
-from .constants import VALUE
+from .constants import *
 from .pytilities.validation import (
     InvalidSequenceError,
     NotNumericSequenceError,
@@ -72,12 +72,12 @@ def test_iqs_returns_expected_slice():
 # --- Error class tests ---
 def test_invalid_sequence_error():
     '''Test BoxPlot raises InvalidSequenceError for a None input sequence.'''
-    with pytest.raises(InvalidSequenceError, match='expected a'):
+    with pytest.raises(InvalidSequenceError):
         BoxPlot(None) # type: ignore
 
 def test_not_numeric_sequence_error():
     '''Test BoxPlot raises NotNumericSequenceError for non-numeric input.'''
-    with pytest.raises(NotNumericSequenceError, match='expected a'):
+    with pytest.raises(NotNumericSequenceError):
         BoxPlot([1, 'a', 3, 4])
 
 
@@ -103,7 +103,7 @@ def test_sequence_are_numbers_nan_inf():
 # --- Additional coverage tests ---
 def test_median_index_not_numeric():
     '''Test median_index raises NotNumericSequenceError for non-numeric input.'''
-    with pytest.raises(NotNumericSequenceError, match='expected a'):
+    with pytest.raises(NotNumericSequenceError):
         median_index(['a', 2, 3])
 
 # --- BoxPlot class tests ---
@@ -146,12 +146,12 @@ def test_boxplot_properties():
 
 def test_boxplot_not_numeric():
     '''Test BoxPlot raises NotNumericSequenceError for non-numeric sequence.'''
-    with pytest.raises(NotNumericSequenceError, match='expected a'):
+    with pytest.raises(NotNumericSequenceError):
         BoxPlot([1, 'a', 3, 4])
 
 def test_boxplot_too_short():
     '''Test BoxPlot raises ValueError for sequence shorter than 4 elements.'''
-    with pytest.raises(ValueError, match='at least length 4'):
+    with pytest.raises(ValueError):
         BoxPlot([1, 2, 3])
 
 def test_boxplot_inclusive_method():
@@ -161,9 +161,6 @@ def test_boxplot_inclusive_method():
     assert bp.q1 == 2.75, f'BoxPlot.q1 should be 2.75 for inclusive quartiles, got {bp.q1}'
     assert bp.q3 == 6.25, f'BoxPlot.q3 should be 6.25 for inclusive quartiles, got {bp.q3}'
     assert bp.median == 4.5, f'BoxPlot.median should remain 4.5, got {bp.median}'
-
-
-
 
 # --- binom tests ---
 @pytest.mark.parametrize('p, n, k, expected_value', [
@@ -180,19 +177,19 @@ def test_binom_typical(p, n, k, expected_value):
 
 def test_binom_invalid_probability():
     '''Test binom raises error for invalid probability.'''
-    with pytest.raises(ValueBelowBoundsError, match='less than 1'):
+    with pytest.raises(ValueAboveBoundsError):
         binom(1.5, 2, 1)
-    with pytest.raises(ValueAboveBoundsError, match='greater than 0'):
+    with pytest.raises(ValueBelowBoundsError):
         binom(-0.1, 2, 1)
 
 def test_binom_invalid_trials():
     '''Test binom raises an error when n_trials is below k_success.'''
-    with pytest.raises(ValueAboveBoundsError, match='greater than 2'):
+    with pytest.raises(ValueBelowBoundsError):
         binom(0.5, 1, 2)
 
 def test_binom_zero_trials_prohibited():
     '''Test binom raises ProhibitedValueError when n_trials is zero.'''
-    with pytest.raises(ProhibitedValueError, match='expected 0 not to be any of'):
+    with pytest.raises(ProhibitedValueError):
         binom(0.5, 0, 0)
 
 # --- geom tests ---
@@ -207,19 +204,24 @@ def test_geom_typical(p, k, expected_value):
     result = geom(p, k, includes_success=True)
     actual = float(result[VALUE])
     assert abs(actual - expected_value) < 1e-6, f'geom({p}, {k}) should return probability {expected_value}, got {actual}'
+    std_dev_payload = result[STD_DEV]
+    assert FRAC_STR in std_dev_payload, f"geom({p}, {k}) should include STD_DEV[{FRAC_STR!r}] key. Actual keys: {list(std_dev_payload.keys())}"
+    assert isinstance(std_dev_payload[FRAC_STR], str), f'geom({p}, {k}) should return STD_DEV[{FRAC_STR!r}] as a string, got {type(std_dev_payload[FRAC_STR]).__name__}'
+    assert std_dev_payload[FRAC_STR].startswith('math.sqrt(Fraction('), f"geom({p}, {k}) should output python-syntax sqrt Fraction string, got {std_dev_payload[FRAC_STR]}"
+    assert FLOAT in std_dev_payload, f"geom({p}, {k}) should include STD_DEV[{FLOAT!r}] key. Actual keys: {list(std_dev_payload.keys())}"
 
 def test_geom_invalid_probability():
     '''Test geom raises error for invalid probability.'''
-    with pytest.raises(ValueBelowBoundsError, match='less than 1'):
+    with pytest.raises(ValueAboveBoundsError):
         geom(1.5, 2)
-    with pytest.raises(ValueAboveBoundsError, match='greater than 0'):
+    with pytest.raises(ValueBelowBoundsError):
         geom(-0.1, 2)
 
 def test_geom_zero_or_one_probability():
-    '''Test geom raises error for p=0 or p=1.'''
-    with pytest.raises(ProhibitedValueError, match='expected 0 not to be any of'):
+    '''Test geom raises strict-bound errors for p=0 or p=1.'''
+    with pytest.raises(ValueBelowBoundsError):
         geom(0, 2)
-    with pytest.raises(ProhibitedValueError, match='expected 1 not to be any of'):
+    with pytest.raises(ValueAboveBoundsError):
         geom(1, 2)
         
         

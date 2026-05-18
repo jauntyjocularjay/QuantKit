@@ -23,6 +23,7 @@ VALUE = 'value'
 COEF = 'coefficient'
 STD_DEV = 'std_dev'
 FRAC = 'fraction'
+FRAC_STR = 'fraction_string'
 FLOAT = 'float'
 
 

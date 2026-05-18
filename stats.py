@@ -4,7 +4,7 @@ import math as Math
 from collections.abc import Sequence
 from typing import Literal, Union
 from fractions import Fraction
-from .constants import VALUE, COEF, FLOAT, MEAN, STD_DEV, FRAC
+from .constants import *
 from .pytilities.validation import *
 from .pytilities.returns import *
 
@@ -124,13 +124,13 @@ def binom(p: Union[Fraction, int, float], n_trials: int = 1, k_success: int = 1)
     if isinstance (p, float): validate_float(p)
     validate_is_greater_than(p, 0)
     validate_is_less_than(p,1)
-    validate_is_greater_than(n_trials, k_success)
+    validate_is_greater_or_equal_to(n_trials, k_success)
     validate_against(n_trials, (0,))
     validate_against(p, (0, 1))
 
     p = Fraction(p)
     q = Fraction(p.denominator - p.numerator, p.denominator)
-    coefficient = Fraction(Math.factorial(n_trials), Math.factorial(k_success) * Math.factorial(n_trials - k_success))
+    coefficient = nck(n_trials, k_success)
 
     product_of_success = p ** k_success
     product_of_failure = q ** (n_trials - k_success)
@@ -144,6 +144,13 @@ def binom(p: Union[Fraction, int, float], n_trials: int = 1, k_success: int = 1)
             FLOAT: Math.sqrt(n_trials * p * q)
         }
     }
+
+def nck(n_trials: int, k_success: int):
+    validate_as(n_trials, int)
+    validate_as(k_success, int)
+    validate_is_greater_or_equal_to(n_trials, k_success)
+    
+    return Fraction(Math.factorial(n_trials), Math.factorial(k_success) * Math.factorial(n_trials - k_success))
 
 def geom(p: Union[Fraction, int, float], k_trials: int = 1, includes_success: bool = True):
     """ Calculate geometric distribution statistics for a given probability of success.
@@ -192,8 +199,29 @@ def geom(p: Union[Fraction, int, float], k_trials: int = 1, includes_success: bo
         VALUE: value,
         MEAN: mean,
         STD_DEV: {
-            FRAC: f'sqrt({variance})',
+            FRAC_STR: f'math.sqrt(Fraction({variance}))',
             FLOAT: float(Math.sqrt(variance))
         }
     }
 
+def geoh(pop_i: int, pop_b: int, n_trials:int, k_success: int):
+    ''' Hyperbolic-Geomtric Distribution Function
+    pop_i = the population of interest
+    pop_b = the rest of the population
+    n_trials = the number of trials
+    k_success = the target number of successes
+    '''
+
+    validate_as(n_trials, int)
+    validate_as(k_success, int)
+    validate_is_greater_or_equal_to(n_trials, k_success)
+    validate_is_greater_than(pop_i, 0)
+    validate_is_greater_than(pop_b, 0)
+    validate_is_greater_than(n_trials, 0)
+    validate_is_greater_than(k_success, 0)
+
+    r = nck(pop_i, k_success)
+    bnk = nck(pop_b, n_trials - k_success)
+    rbn = nck(pop_i + pop_b, n_trials)
+
+    return Fraction(r * bnk / rbn)
