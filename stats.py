@@ -225,3 +225,16 @@ def geoh(pop_i: int, pop_b: int, n_trials:int, k_success: int):
     rbn = nck(pop_i + pop_b, n_trials)
 
     return Fraction(r * bnk / rbn)
+
+def pois_point_probability(x: int, mean: Union[Fraction, int, float]):
+    mean = Fraction(mean)
+
+    mean_to_x = mean ** x
+    e_to_neg_mean = Fraction(Math.e ** -mean)
+    x_factorial = Math.factorial(x)
+    
+    return Fraction(mean_to_x * e_to_neg_mean / x_factorial)
+
+def pois(x_max: int, mean:Union[Fraction, int, float]):
+    poisson_sum = pois_point_probability(0, mean) + pois_point_probability(x_max, mean)
+    return 1 - poisson_sum
