@@ -146,6 +146,28 @@ def binom(p: Union[Fraction, int, float], n_trials: int = 1, k_success: int = 1)
     }
 
 def nck(n_trials: int, k_success: int):
+    """ Compute the binomial coefficient C(n_trials, k_success).
+
+    This function returns the number of ways to choose k_success outcomes from
+    n_trials total outcomes without regard to order.
+
+    Parameters
+    ----------
+    n_trials : int
+        The total number of trials/items (n).
+    k_success : int
+        The number of selected successes/items (k).
+
+    Returns
+    -------
+    Fraction
+        The exact binomial coefficient value as a Fraction.
+
+    Raises
+    ------
+    TypeError, ValueError
+        If inputs are not integers or if k_success is greater than n_trials.
+    """
     validate_as(n_trials, int)
     validate_as(k_success, int)
     validate_is_greater_or_equal_to(n_trials, k_success)
@@ -204,13 +226,33 @@ def geom(p: Union[Fraction, int, float], k_trials: int = 1, includes_success: bo
         }
     }
 
-def geoh(pop_i: int, pop_b: int, n_trials:int, k_success: int):
-    ''' Hyperbolic-Geomtric Distribution Function
-    pop_i = the population of interest
-    pop_b = the rest of the population
-    n_trials = the number of trials
-    k_success = the target number of successes
-    '''
+def geoh(pop_i: int, pop_b: int, n_trials:int, k_success: int) -> Fraction:
+    """ Compute hypergeometric probability for a target number of successes.
+
+    Uses the hypergeometric PMF:
+    C(pop_i, k_success) * C(pop_b, n_trials - k_success) / C(pop_i + pop_b, n_trials)
+
+    Parameters
+    ----------
+    pop_i : int
+        The population of interest.
+    pop_b : int
+        The remaining population outside the group of interest.
+    n_trials : int
+        The number of draws (sample size).
+    k_success : int
+        The target number of successes from the population of interest.
+
+    Returns
+    -------
+    Fraction
+        The hypergeometric probability of observing exactly k_success successes.
+
+    Raises
+    ------
+    TypeError, ValueError
+        If inputs are not integers or violate required bounds.
+    """
 
     validate_as(n_trials, int)
     validate_as(k_success, int)
@@ -226,15 +268,54 @@ def geoh(pop_i: int, pop_b: int, n_trials:int, k_success: int):
 
     return Fraction(r * bnk / rbn)
 
-def pois_point_probability(x: int, mean: Union[Fraction, int, float]):
-    mean = Fraction(mean)
+def pois(x: int, mean: Union[Fraction, int, float]) -> float:
+    """ Computes the Poisson probability mass function (PMF) for a given count x and mean.
+
+    The Poisson PMF gives the probability of observing exactly x events in a fixed interval
+    when events occur independently at a constant average rate (mean).
+
+    Parameters
+    ----------
+    x : int
+        The number of observed events (must be a non-negative integer).
+    mean : Fraction | int | float
+        The expected number of events (must be positive).
+
+    Returns
+    -------
+    float
+        The probability P(X = x) for a Poisson random variable with the given mean.
+
+    Raises
+    ------
+    TypeError, ValueError
+        If input parameters are invalid or out of range, or if the result is not a valid float.
+
+    Notes
+    -----
+    This function includes a dynamic overflow check to ensure that mean**x does not exceed
+    the maximum representable floating-point value. For large mean and/or x, direct computation
+    of mean**x can overflow to infinity, resulting in an invalid probability. The overflow guard
+    raises an error if the computation would exceed safe float limits.
+    """
+    mean = float(mean)
+    validate_float(mean)
+
+    validate_as(x, int)
+    validate_as(mean, float)
+
+    validate_is_greater_or_equal_to(x, 0)
+    validate_is_greater_than(mean, 0)
+
+    # Overflow check: ensures mean**x is safe for floating-point computation
+    validate_safe_exponent(mean, x)
 
     mean_to_x = mean ** x
-    e_to_neg_mean = Fraction(Math.e ** -mean)
+    e_to_neg_mean = Math.e ** -mean
     x_factorial = Math.factorial(x)
     
-    return Fraction(mean_to_x * e_to_neg_mean / x_factorial)
-
-def pois(x_max: int, mean:Union[Fraction, int, float]):
-    poisson_sum = pois_point_probability(0, mean) + pois_point_probability(x_max, mean)
-    return 1 - poisson_sum
+    result = mean_to_x * e_to_neg_mean / x_factorial
+    
+    validate_float(result)
+    
+    return result

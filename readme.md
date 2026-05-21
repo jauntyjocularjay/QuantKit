@@ -10,7 +10,10 @@ A collection of python utilities I created because why in Hades are these not al
   - [`interquartile_slice`](#interquartile_slice)
   - [`iqs`](#iqs)
   - [`binom`](#binom)
+  - [`nck`](#nck)
   - [`geom`](#geom)
+  - [`geoh`](#geoh)
+  - [`pois`](#pois)
   - [Constants](#constants)
 - [Test Runner](#test-runner)
   - [Bash](#bash)
@@ -55,8 +58,17 @@ result = binom(p=Fraction(1, 2), n_trials=10, k_success=3)
 result[VALUE]       # probability as a Fraction
 result[COEF]        # binomial coefficient C(n, k)
 result[MEAN]        # expected successes
-result[SDEV][FRAC]  # standard deviation as a symbolic string
-result[SDEV][FLOAT] # standard deviation as a float
+result[STD_DEV][FRAC]  # standard deviation as a symbolic string
+result[STD_DEV][FLOAT] # standard deviation as a float
+```
+
+### `nck`
+
+Computes the binomial coefficient $C(n, k)$ as an exact `Fraction`.
+
+```python
+from quantkit.stats import nck
+nck(10, 3)  # Fraction(120, 1)
 ```
 
 ### `geom`
@@ -68,8 +80,26 @@ from quantkit.stats import geom
 result = geom(p=Fraction(1, 6), k_trials=3)
 result[VALUE]       # probability as a Fraction
 result[MEAN]        # expected trials as a Fraction
-result[SDEV][FRAC]  # standard deviation as a symbolic string
-result[SDEV][FLOAT] # standard deviation as a float
+result[STD_DEV][FRAC_STR] # standard deviation as a symbolic string
+result[STD_DEV][FLOAT]    # standard deviation as a float
+```
+
+### `geoh`
+
+Computes a hypergeometric point probability using population-of-interest size, remaining population size, sample size, and target successes.
+
+```python
+from quantkit.stats import geoh
+geoh(pop_i=80, pop_b=100, n_trials=50, k_success=35)
+```
+
+### `pois`
+
+Computes the Poisson point probability $P(X=x)$ for a given mean. Includes validation and a dynamic overflow check to avoid unsafe floating-point exponentiation for large inputs.
+
+```python
+from quantkit.stats import pois
+pois(x=3, mean=2)  # 0.180447...
 ```
 
 ---
@@ -80,8 +110,9 @@ All dictionary keys are defined as constants in `constants.py`. Use these for al
 VALUE = 'value'
 COEF  = 'coefficient'
 MEAN  = 'mean'
-SDEV  = 'std_dev'
+STD_DEV = 'std_dev'
 FRAC  = 'fraction'
+FRAC_STR = 'fraction_string'
 FLOAT = 'float'
 ```
 
