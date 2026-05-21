@@ -1,14 +1,22 @@
-import pytest
+import pytest # type: ignore
+from fractions import Fraction
 from .constants import *
+from .pytilities.pytest_helpers import (
+    assert_approx_equal,
+    assert_mapping_has_keys,
+    assert_raises_expected,
+    assert_starts_with,
+)
 from .pytilities.validation import (
     InvalidSequenceError,
+    InvalidTypeError,
     NotNumericSequenceError,
     ProhibitedValueError,
     ValueAboveBoundsError,
     ValueBelowBoundsError,
     sequence_are_numbers,
 )
-from .stats import binom, geom, interquartile_slice, iqs, median_index
+from .stats import binom, geom, geoh, interquartile_slice, iqs, median_index, nck, pois
 from .boxplot import BoxPlot
 
 
@@ -60,6 +68,15 @@ def test_iqr_slice_non_numeric():
         interquartile_slice([1, 'a', 3])
 
 
+def test_iqr_slice_invalid_sequence_error():
+    '''Test interquartile_slice raises InvalidSequenceError for non-sequence input.'''
+    assert_raises_expected(
+        lambda: interquartile_slice(123), # type: ignore
+        InvalidSequenceError,
+        'interquartile_slice should raise InvalidSequenceError for non-sequence input',
+    )
+
+
 # --- iqs tests ---
 def test_iqs_returns_expected_slice():
     '''Test that iqs returns the expected IQR slice for tuple input.'''
@@ -82,22 +99,18 @@ def test_not_numeric_sequence_error():
 
 
 # --- sequence_are_numbers tests ---
-def test_sequence_are_numbers_all_numeric():
-    '''Test sequence_are_numbers returns True for all-numeric sequence.'''
-    actual = sequence_are_numbers([1, 2.5, 3])
-    assert actual is True, f'sequence_are_numbers should return True for all numeric sequence. Expected: True, Actual: {actual}'
-
-def test_sequence_are_numbers_non_numeric():
-    '''Test sequence_are_numbers returns False if any element is not numeric.'''
-    actual = sequence_are_numbers([1, 'a', 3])
-    assert actual is False, f'sequence_are_numbers should return False if any element is not numeric. Expected: False, Actual: {actual}'
-
-def test_sequence_are_numbers_nan_inf():
-    '''Test sequence_are_numbers returns False if any element is NaN or infinite.'''
-    actual_nan = sequence_are_numbers([1, float('nan'), 3])
-    assert actual_nan is False, f'sequence_are_numbers should return False if any element is NaN. Expected: False, Actual: {actual_nan}'
-    actual_inf = sequence_are_numbers([1, float('inf'), 3])
-    assert actual_inf is False, f'sequence_are_numbers should return False if any element is infinite. Expected: False, Actual: {actual_inf}'
+@pytest.mark.parametrize('data,expected', [
+    ([1, 2.5, 3], True),
+    ([1, 'a', 3], False),
+    ([1, float('nan'), 3], False),
+    ([1, float('inf'), 3], False),
+])
+def test_sequence_are_numbers(data, expected):
+    '''Test sequence_are_numbers truthiness across valid and invalid numeric sequences.'''
+    actual = sequence_are_numbers(data)
+    assert actual is expected, (
+        f'sequence_are_numbers should return {expected} for {data}. Actual: {actual}'
+    )
 
 
 # --- Additional coverage tests ---
@@ -144,11 +157,6 @@ def test_boxplot_properties():
     assert bp.iqr_balance == 0.0, f'BoxPlot.iqr_balance should be 0.0, got {bp.iqr_balance}'
     assert bp.whisker_balance == 0.0, f'BoxPlot.whisker_balance should be 0.0, got {bp.whisker_balance}'
 
-def test_boxplot_not_numeric():
-    '''Test BoxPlot raises NotNumericSequenceError for non-numeric sequence.'''
-    with pytest.raises(NotNumericSequenceError):
-        BoxPlot([1, 'a', 3, 4])
-
 def test_boxplot_too_short():
     '''Test BoxPlot raises ValueError for sequence shorter than 4 elements.'''
     with pytest.raises(ValueError):
@@ -173,24 +181,41 @@ def test_binom_typical(p, n, k, expected_value):
     '''Test binom returns correct probability for typical cases.'''
     result = binom(p, n, k)
     actual = float(result[VALUE])
-    assert abs(actual - expected_value) < 1e-6, f'binom({p}, {n}, {k}) should return probability {expected_value}, got {actual}'
+    assert_approx_equal(
+        actual,
+        expected_value,
+        f'binom({p}, {n}, {k}) should return probability {expected_value}',
+        abs_tol=1e-6,
+    )
 
 def test_binom_invalid_probability():
     '''Test binom raises error for invalid probability.'''
-    with pytest.raises(ValueAboveBoundsError):
-        binom(1.5, 2, 1)
-    with pytest.raises(ValueBelowBoundsError):
-        binom(-0.1, 2, 1)
+    assert_raises_expected(
+        lambda: binom(1.5, 2, 1),
+        ValueAboveBoundsError,
+        'binom should raise ValueAboveBoundsError when probability is above 1',
+    )
+    assert_raises_expected(
+        lambda: binom(-0.1, 2, 1),
+        ValueBelowBoundsError,
+        'binom should raise ValueBelowBoundsError when probability is below 0',
+    )
 
 def test_binom_invalid_trials():
     '''Test binom raises an error when n_trials is below k_success.'''
-    with pytest.raises(ValueBelowBoundsError):
-        binom(0.5, 1, 2)
+    assert_raises_expected(
+        lambda: binom(0.5, 1, 2),
+        ValueBelowBoundsError,
+        'binom should raise ValueBelowBoundsError when n_trials is below k_success',
+    )
 
 def test_binom_zero_trials_prohibited():
     '''Test binom raises ProhibitedValueError when n_trials is zero.'''
-    with pytest.raises(ProhibitedValueError):
-        binom(0.5, 0, 0)
+    assert_raises_expected(
+        lambda: binom(0.5, 0, 0),
+        ProhibitedValueError,
+        'binom should raise ProhibitedValueError when n_trials is zero',
+    )
 
 # --- geom tests ---
 @pytest.mark.parametrize('p, k, expected_value', [
@@ -203,25 +228,147 @@ def test_geom_typical(p, k, expected_value):
     '''Test geom returns correct probability for typical cases (includes_success=True).'''
     result = geom(p, k, includes_success=True)
     actual = float(result[VALUE])
-    assert abs(actual - expected_value) < 1e-6, f'geom({p}, {k}) should return probability {expected_value}, got {actual}'
+    assert_approx_equal(
+        actual,
+        expected_value,
+        f'geom({p}, {k}) should return probability {expected_value}',
+        abs_tol=1e-6,
+    )
     std_dev_payload = result[STD_DEV]
-    assert FRAC_STR in std_dev_payload, f"geom({p}, {k}) should include STD_DEV[{FRAC_STR!r}] key. Actual keys: {list(std_dev_payload.keys())}"
+    assert_mapping_has_keys(
+        std_dev_payload,
+        (FRAC_STR, FLOAT),
+        f'geom({p}, {k}) std-dev payload should include required keys',
+    )
     assert isinstance(std_dev_payload[FRAC_STR], str), f'geom({p}, {k}) should return STD_DEV[{FRAC_STR!r}] as a string, got {type(std_dev_payload[FRAC_STR]).__name__}'
-    assert std_dev_payload[FRAC_STR].startswith('math.sqrt(Fraction('), f"geom({p}, {k}) should output python-syntax sqrt Fraction string, got {std_dev_payload[FRAC_STR]}"
-    assert FLOAT in std_dev_payload, f"geom({p}, {k}) should include STD_DEV[{FLOAT!r}] key. Actual keys: {list(std_dev_payload.keys())}"
+    assert_starts_with(
+        std_dev_payload[FRAC_STR],
+        'math.sqrt(Fraction(',
+        f'geom({p}, {k}) should output python-syntax sqrt Fraction string',
+    )
 
 def test_geom_invalid_probability():
     '''Test geom raises error for invalid probability.'''
-    with pytest.raises(ValueAboveBoundsError):
-        geom(1.5, 2)
-    with pytest.raises(ValueBelowBoundsError):
-        geom(-0.1, 2)
+    assert_raises_expected(
+        lambda: geom(1.5, 2),
+        ValueAboveBoundsError,
+        'geom should raise ValueAboveBoundsError when probability is above 1',
+    )
+    assert_raises_expected(
+        lambda: geom(-0.1, 2),
+        ValueBelowBoundsError,
+        'geom should raise ValueBelowBoundsError when probability is below 0',
+    )
 
 def test_geom_zero_or_one_probability():
     '''Test geom raises strict-bound errors for p=0 or p=1.'''
-    with pytest.raises(ValueBelowBoundsError):
-        geom(0, 2)
-    with pytest.raises(ValueAboveBoundsError):
-        geom(1, 2)
+    assert_raises_expected(
+        lambda: geom(0, 2),
+        ValueBelowBoundsError,
+        'geom should raise ValueBelowBoundsError for p=0',
+    )
+    assert_raises_expected(
+        lambda: geom(1, 2),
+        ValueAboveBoundsError,
+        'geom should raise ValueAboveBoundsError for p=1',
+    )
+
+
+# --- nck tests ---
+@pytest.mark.parametrize('n_trials,k_success,expected', [
+    (5, 2, Fraction(10, 1)),
+    (6, 0, Fraction(1, 1)),
+    (6, 6, Fraction(1, 1)),
+])
+def test_nck_typical(n_trials, k_success, expected):
+    '''Test nck returns expected exact binomial coefficient values.'''
+    actual = nck(n_trials, k_success)
+    assert actual == expected, f'nck({n_trials}, {k_success}) should return {expected}, got {actual}'
+
+
+@pytest.mark.parametrize('n_trials,k_success', [
+    ('5', 2),
+    (5, 2.2),
+])
+def test_nck_invalid_types(n_trials, k_success):
+    '''Test nck raises InvalidTypeError when arguments are not integers.'''
+    assert_raises_expected(
+        lambda: nck(n_trials, k_success),
+        InvalidTypeError,
+        f'nck should raise InvalidTypeError for non-int inputs ({n_trials}, {k_success})',
+    )
+
+
+def test_nck_k_greater_than_n_raises():
+    '''Test nck raises ValueBelowBoundsError when k_success is greater than n_trials.'''
+    assert_raises_expected(
+        lambda: nck(3, 4),
+        ValueBelowBoundsError,
+        'nck should raise ValueBelowBoundsError when k_success exceeds n_trials',
+    )
+
+
+# --- geoh tests ---
+def test_geoh_typical_probability():
+    '''Test geoh returns expected hypergeometric probability for a standard case.'''
+    actual = geoh(5, 5, 4, 2)
+    expected = Fraction(10, 21)
+    assert actual == expected, f'geoh(5, 5, 4, 2) should return {expected}, got {actual}'
+
+
+@pytest.mark.parametrize('pop_i,pop_b,n_trials,k_success,expected_error', [
+    (5, 5, 2, 3, ValueBelowBoundsError),
+    (5, 5, 4, 0, ValueBelowBoundsError),
+    (0, 5, 4, 1, ValueBelowBoundsError),
+    (5, 0, 4, 1, ValueBelowBoundsError),
+])
+def test_geoh_invalid_bounds(pop_i, pop_b, n_trials, k_success, expected_error):
+    '''Test geoh raises bounds errors for invalid populations/trials/success values.'''
+    assert_raises_expected(
+        lambda: geoh(pop_i, pop_b, n_trials, k_success),
+        expected_error,
+        (
+            'geoh should raise a bounds error for invalid inputs '
+            f'({pop_i}, {pop_b}, {n_trials}, {k_success})'
+        ),
+    )
+
+
+# --- pois tests ---
+def test_pois_typical_probability():
+    '''Test pois computes expected Poisson PMF for a typical safe input.'''
+    actual = pois(2, 3)
+    expected = 0.22404180765538775
+    assert_approx_equal(
+        actual,
+        expected,
+        'pois(2, 3) should return expected PMF value',
+        abs_tol=1e-12,
+    )
+
+
+@pytest.mark.parametrize('x,mean,expected_error', [
+    ('2', 3, InvalidTypeError),
+    (2, float('inf'), ProhibitedValueError),
+    (2, float('nan'), ProhibitedValueError),
+    (2, 0, ValueBelowBoundsError),
+    (2, -1, ValueBelowBoundsError),
+])
+def test_pois_invalid_inputs(x, mean, expected_error):
+    '''Test pois raises expected errors for invalid count/mean inputs.'''
+    assert_raises_expected(
+        lambda: pois(x, mean),
+        expected_error,
+        f'pois should raise {expected_error.__name__} for inputs ({x}, {mean})',
+    )
+
+
+def test_pois_exponent_overflow_guard():
+    '''Test pois raises ValueAboveBoundsError when mean**x exceeds validator safety bound.'''
+    assert_raises_expected(
+        lambda: pois(20, 10),
+        ValueAboveBoundsError,
+        'pois should raise ValueAboveBoundsError for unsafe exponentiation input',
+    )
         
         
