@@ -10,12 +10,7 @@ A collection of python utilities I created because why in Hades are these not al
   - [`interquartile_slice`](#interquartile_slice)
   - [`iqs`](#iqs)
   - [`binom`](#binom)
-  - [`nck`](#nck)
   - [`geom`](#geom)
-  - [`geom_mean`](#geom_mean)
-  - [`geom_var`](#geom_var)
-  - [`geoh`](#geoh)
-  - [`pois`](#pois)
   - [Constants](#constants)
 - [Test Runner](#test-runner)
   - [Bash](#bash)
@@ -60,67 +55,21 @@ result = binom(p=Fraction(1, 2), n_trials=10, k_success=3)
 result[VALUE]       # probability as a Fraction
 result[COEF]        # binomial coefficient C(n, k)
 result[MEAN]        # expected successes
-result[STD_DEV][FRAC]  # standard deviation as a symbolic string
-result[STD_DEV][FLOAT] # standard deviation as a float
-```
-
-### `nck`
-
-Computes the binomial coefficient $C(n, k)$ as an exact `Fraction`.
-
-```python
-from quantkit.stats import nck
-nck(10, 3)  # Fraction(120, 1)
+result[SDEV][FRAC]  # standard deviation as a symbolic string
+result[SDEV][FLOAT] # standard deviation as a float
 ```
 
 ### `geom`
 
-Computes the geometric PMF value at `k_trials` for a success probability `p`.
-Supports both definitions of the geometric variable:
-
-- `includes_success=True` (default): `k_trials` is the trial index of the first success.
-- `includes_success=False`: `k_trials` is the number of failures before the first success.
+Computes geometric distribution statistics: probability of first success at trial `k`, mean, and standard deviation. Supports both definitions — counting the trial of first success (`includes_success=True`, default) or counting failures before first success (`includes_success=False`).
 
 ```python
 from quantkit.stats import geom
-geom(p=Fraction(1, 6), k_trials=3)  # Fraction PMF value
-```
-
-### `geom_mean`
-
-Computes the mean of the geometric distribution for the selected definition.
-
-```python
-from quantkit.stats import geom_mean
-geom_mean(Fraction(1, 6), includes_success=True)   # 1/p
-geom_mean(Fraction(1, 6), includes_success=False)  # (1-p)/p
-```
-
-### `geom_var`
-
-Computes the variance of the geometric distribution, `Var = (1-p)/p^2`.
-
-```python
-from quantkit.stats import geom_var
-geom_var(Fraction(1, 6))
-```
-
-### `geoh`
-
-Computes a hypergeometric point probability using population-of-interest size, remaining population size, sample size, and target successes.
-
-```python
-from quantkit.stats import geoh
-geoh(pop_i=80, pop_b=100, n_trials=50, k_success=35)
-```
-
-### `pois`
-
-Computes the Poisson point probability $P(X=x)$ for a given mean. Includes validation and a dynamic overflow check to avoid unsafe floating-point exponentiation for large inputs.
-
-```python
-from quantkit.stats import pois
-pois(x=3, mean=2)  # 0.180447...
+result = geom(p=Fraction(1, 6), k_trials=3)
+result[VALUE]       # probability as a Fraction
+result[MEAN]        # expected trials as a Fraction
+result[SDEV][FRAC]  # standard deviation as a symbolic string
+result[SDEV][FLOAT] # standard deviation as a float
 ```
 
 ---
@@ -131,9 +80,8 @@ All dictionary keys are defined as constants in `constants.py`. Use these for al
 VALUE = 'value'
 COEF  = 'coefficient'
 MEAN  = 'mean'
-STD_DEV = 'std_dev'
+SDEV  = 'std_dev'
 FRAC  = 'fraction'
-FRAC_STR = 'fraction_string'
 FLOAT = 'float'
 ```
 
