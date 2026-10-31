@@ -122,11 +122,11 @@ def binom(p: Union[Fraction, int, float], n_trials: int = 1, k_success: int = 1)
     """
     validate_as(p, (Fraction, int, float))
     if isinstance (p, float): validate_float(p)
-    validate_is_greater_than(p, 0)
-    validate_is_less_than(p,1)
-    validate_is_greater_than(n_trials, k_success)
-    validate_against(n_trials, (0,))
     validate_against(p, (0, 1))
+    if p > 1: raise ValueBelowBoundsError(p, 1)
+    if p < 0: raise ValueAboveBoundsError(p, 0)
+    if n_trials < k_success: raise ValueAboveBoundsError(n_trials, k_success)
+    validate_against(n_trials, (0,))
 
     p = Fraction(p)
     q = Fraction(p.denominator - p.numerator, p.denominator)
@@ -178,9 +178,9 @@ def geom(p: Union[Fraction, int, float], k_trials: int = 1, includes_success: bo
     """
     validate_as(p, (Fraction, int, float))
     if isinstance (p, float): validate_float(p)
-    validate_is_greater_than(p, 0)
-    validate_is_less_than(p, 1)
     validate_against(p, (0, 1))
+    if p > 1: raise ValueBelowBoundsError(p, 1)
+    if p < 0: raise ValueAboveBoundsError(p, 0)
 
     p = Fraction(p)
     q = Fraction(p.denominator - p.numerator, p.denominator)
@@ -196,4 +196,3 @@ def geom(p: Union[Fraction, int, float], k_trials: int = 1, includes_success: bo
             FLOAT: float(Math.sqrt(variance))
         }
     }
-
