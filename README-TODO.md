@@ -4,7 +4,7 @@ This checklist captures the main recommendations from the project review and exp
 
 ## 1) Clean up module imports and dependency visibility
 
-- [ ] Remove or reduce wildcard imports in the project code
+- [x] Remove or reduce wildcard imports in the project code
   - Why: `from .stats import *`, `from .constants import *`, and similar patterns hide the actual dependencies of each module. This makes the code harder to read, harder to refactor, and harder for static analysis tools to verify.
   - Example impact: it becomes unclear which symbols are truly required by a module, and names can accidentally collide across imports.
 
