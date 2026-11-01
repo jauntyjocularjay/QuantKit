@@ -7,10 +7,10 @@ A collection of python utilities I created because why in Hades are these not al
 - [LLM Disclosure](#llm-disclosure)
 - [Overview](#overview)
 - [Installation](#installation)
+- [`constants.py`](#constantspy)
 - [`boxplot.py`](#boxplotpy)
   - [`BoxPlot`](#boxplot)
   - [Example output](#example-output)
-- [`constants.py`](#constantspy)
 - [`stats.py`](#statspy)
   - [`median_index`](#median_index)
   - [`interquartile_slice`](#interquartile_slice)
@@ -25,7 +25,6 @@ A collection of python utilities I created because why in Hades are these not al
 - [`pytilities/`](#pytilities)
 - [Test Runner](#test-runner)
   - [Bash](#bash)
-  - [PowerShell](#powershell)
 
 ## LLM Disclosure
 
@@ -60,6 +59,35 @@ python -m pytest -v
 ```
 
 If you are importing modules locally, run Python from the repository root or add the repository root to `PYTHONPATH`.
+
+## `constants.py`
+
+`constants.py` centralizes the string keys and symbolic enums used across QuantKit. These names are exported as module-level constants so callers can avoid repeating magic strings and keep dictionary access consistent.
+
+```python
+from quantkit.constants import (
+    OUTCOME,
+    ALL_OUTCOMES,
+    PROBABILITY,
+    COMPLEMENT,
+    MEAN,
+    VALUE,
+    COEF,
+    STD_DEV,
+    FRAC,
+    FRAC_STR,
+    FLOAT,
+    Symbol,
+    EventType,
+    Relationship,
+)
+```
+
+The module also defines reusable enums for probability relationships and event types:
+
+- `Symbol`: set and logic symbols such as `∪`, `∩`, and `|`
+- `EventType`: `DEPENDENT`, `INDEPENDENT`, and `MUTUAL_EXCLUSIVE`
+- `Relationship`: symbolic relationship operators for probability expressions
 
 ## `boxplot.py`
 
@@ -103,35 +131,6 @@ The object also exposes:
 - `range`: max minus min.
 - `outliers`: values outside the Tukey fence.
 - `as_dict()`: dictionary-friendly representation for logging or serialization.
-
-## `constants.py`
-
-`constants.py` centralizes the string keys and symbolic enums used across QuantKit. These names are exported as module-level constants so callers can avoid repeating magic strings and keep dictionary access consistent.
-
-```python
-from quantkit.constants import (
-    OUTCOME,
-    ALL_OUTCOMES,
-    PROBABILITY,
-    COMPLEMENT,
-    MEAN,
-    VALUE,
-    COEF,
-    STD_DEV,
-    FRAC,
-    FRAC_STR,
-    FLOAT,
-    Symbol,
-    EventType,
-    Relationship,
-)
-```
-
-The module also defines reusable enums for probability relationships and event types:
-
-- `Symbol`: set and logic symbols such as `∪`, `∩`, and `|`
-- `EventType`: `DEPENDENT`, `INDEPENDENT`, and `MUTUAL_EXCLUSIVE`
-- `Relationship`: symbolic relationship operators for probability expressions
 
 ## `stats.py`
 
@@ -256,6 +255,8 @@ The repository also includes `pytilities/`, a helper package for validation, seq
 
 ## Test Runner
 
+All tests are DRY, readable, and use the latest API and key constants. See `test_stats.py` for examples.
+
 ### Bash
 
 ```bash
@@ -269,17 +270,3 @@ python -m pytest -v test_stats.py
 python -m pytest --cov=. --cov-report=term -v test_stats.py
 ```
 
-### PowerShell
-
-```powershell
-# Run from the project root
-cd path\to\QuantKit
-
-# Run a specific test file
-python -m pytest -v test_stats.py
-
-# Run tests with coverage report
-python -m pytest --cov=. --cov-report=term -v test_stats.py
-```
-
-All tests are DRY, readable, and use the latest API and key constants. See `test_stats.py` for examples.
