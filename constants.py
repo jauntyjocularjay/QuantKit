@@ -26,6 +26,18 @@ FRAC = 'fraction'
 FRAC_STR = 'fraction_string'
 FLOAT = 'float'
 
+DATA_LIST = 'data_list'
+SEQUENCE_MINIMUM = 'min'
+SEQUENCE_MAXIMUM = 'max'
+SEQUENCE_MEDIAN = 'median'
+SEQUENCE_RANGE = 'range'
+OUTLIERS = 'outliers'
+Q1 = 'q1'
+Q2 = 'q2'
+Q3 = 'q3'
+IQR = 'iqr'
+TUKEY_FENCE = 'tukey_fence'
+
 
 class EventType(Enum):
     DEPENDENT = 'dependent'

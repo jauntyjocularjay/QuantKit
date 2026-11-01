@@ -1,6 +1,6 @@
 import pytest # type: ignore
 from fractions import Fraction
-from .constants import *
+from .constants import ( VALUE )
 from .pytilities.assert_helpers import (
     assert_approx_equal,
     assert_raises_expected,

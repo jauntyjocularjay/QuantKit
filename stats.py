@@ -4,9 +4,40 @@ import math as Math
 from collections.abc import Sequence
 from typing import Literal, Union
 from fractions import Fraction
-from .constants import *
-from .pytilities.validation import *
-from .pytilities.returns import *
+from .constants import ( 
+    COEF,
+    FLOAT,
+    FRAC,
+    MEAN,
+    STD_DEV,
+    VALUE
+)
+from .pytilities.validation import (
+    InvalidSequenceError,
+    InvalidTypeError,
+    ProhibitedValueError,
+    DuplicateValueError,
+    ValueAboveBoundsError,
+    ValueBelowBoundsError,
+    NotNumericSequenceError,
+    ProhibitedValueError,
+    sequence_are_numbers,
+    validate_as,
+    validate_against,
+    validate_float,
+    validate_uniqueness,
+    validate_is_greater_than,
+    validate_igt,
+    validate_is_greater_or_equal_to,
+    validate_ige,
+    validate_is_less_than,
+    validate_is_less_or_equal_to,
+    validate_ile,
+    validate_safe_exponent
+)
+from .pytilities.returns import (
+    original_sequence_type
+)
 
 
 
