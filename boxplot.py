@@ -1,18 +1,41 @@
 from .stats import *
-from .pytilities.validation import *
+from .constants import (
+    DATA_LIST,
+    SEQUENCE_MINIMUM,
+    SEQUENCE_MEDIAN,
+    SEQUENCE_MAXIMUM,
+    SEQUENCE_RANGE,
+    OUTLIERS,
+    Q1,
+    Q2,
+    Q3,
+    IQR,
+    TUKEY_FENCE
+)
+from .pytilities.validation import (
+    InvalidSequenceError,
+    InvalidTypeError,
+    ProhibitedValueError,
+    DuplicateValueError,
+    ValueAboveBoundsError,
+    ValueBelowBoundsError,
+    NotNumericSequenceError,
+    ProhibitedValueError,
+    sequence_are_numbers,
+    validate_as,
+    validate_against,
+    validate_float,
+    validate_uniqueness,
+    validate_is_greater_than,
+    validate_igt,
+    validate_is_greater_or_equal_to,
+    validate_ige,
+    validate_is_less_than,
+    validate_is_less_or_equal_to,
+    validate_ile,
+    validate_safe_exponent
+)
 from dataclasses import dataclass, field
-
-DATA_LIST = 'data_list'
-SEQUENCE_MINIMUM = 'min'
-SEQUENCE_MAXIMUM = 'max'
-SEQUENCE_MEDIAN = 'median'
-SEQUENCE_RANGE = 'range'
-OUTLIERS = 'outliers'
-Q1 = 'q1'
-Q2 = 'q2'
-Q3 = 'q3'
-IQR = 'iqr'
-TUKEY_FENCE = 'tukey_fence'
 
 @dataclass(frozen=True)
 class BoxPlot:
