@@ -1,7 +1,5 @@
 # QuantKit
 
-A collection of python utilities I created because why in Hades are these not already implemented in the standard library?
-
 ## Table of Contents
 
 - [LLM Disclosure](#llm-disclosure)
