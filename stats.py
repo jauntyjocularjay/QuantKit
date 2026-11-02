@@ -39,8 +39,6 @@ from .pytilities.returns import (
     original_sequence_type
 )
 
-
-
 def median_index(data_list: Sequence):
     ''' Returns the index or indices of the median value(s) in a sorted version of the input list.
 
@@ -77,7 +75,6 @@ def median_index(data_list: Sequence):
         lower_index = len(data_list) // 2 - 1
         higher_index = len(data_list) // 2
         return (lower_index, higher_index)
-
 
 def interquartile_slice(data_list: Sequence):
     ''' Returns the data points within the interquartile range (IQR) of the input list using 
@@ -120,11 +117,9 @@ def interquartile_slice(data_list: Sequence):
 
     return original_sequence_type(input_type, result)
 
-
 def iqs(data_list: Sequence):
     """Alias for `interquartile_slice`. Returns the data points within the IQR of the input list."""
     return interquartile_slice(data_list)
-
 
 def nck(n_trials: int, k_success: int):
     """ Compute the binomial coefficient C(n_trials, k_success).
@@ -155,13 +150,11 @@ def nck(n_trials: int, k_success: int):
     
     return Fraction(Math.factorial(n_trials), Math.factorial(k_success) * Math.factorial(n_trials - k_success))
 
-
 def validate_probability(p: Union[Fraction, int, float]):
     validate_as(p, (Fraction, int, float))
     if isinstance (p, float): validate_float(p)
     validate_is_greater_than(p, 0)
     validate_is_less_than(p, 1)
-
 
 def binom(p: Union[Fraction, int, float], n_trials: int = 1, k_success: int = 1):
     """Calculate binomial distribution statistics for a given probability of success.
@@ -258,7 +251,6 @@ def geom(p: Union[Fraction, int, float], k_trials: int = 1, includes_success: bo
     q = fractional_complement(p)
     return p * pow(q,k_trials - 1) if includes_success else p * pow(q, k_trials)
 
-
 def geom_mean(p: Union[Fraction, int, float], includes_success: bool = True):
     """ Compute the mean of a geometric distribution.
 
@@ -293,7 +285,6 @@ def geom_mean(p: Union[Fraction, int, float], includes_success: bool = True):
     
     return Fraction(p.denominator, p.numerator) if includes_success else Fraction(1-p, p)
 
-
 def geom_var(p: Union[Fraction, int, float]):
     """ Compute the variance of a geometric distribution.
 
@@ -321,7 +312,6 @@ def geom_var(p: Union[Fraction, int, float]):
     q = fractional_complement(p)
     
     return Fraction(q, p**2)
-
 
 def geoh(pop_i: int, pop_b: int, n_trials:int, k_success: int) -> Fraction:
     """ Compute hypergeometric probability for a target number of successes.
